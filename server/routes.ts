@@ -235,7 +235,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/lessons", requireAuth, requireRole(["instructor", "administrator"]), async (req, res) => {
     try {
-      const data = insertLessonSchema.parse(req.body);
+      // Transform the data to match schema requirements
+      const transformedData = {
+        ...req.body,
+        date: new Date(req.body.date), // Convert string to Date
+        cost: req.body.cost.toString(), // Convert number to string
+      };
+      
+      const data = insertLessonSchema.parse(transformedData);
       const lesson = await storage.createLesson(data);
       res.status(201).json(lesson);
     } catch (error) {
@@ -262,6 +269,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting lesson:", error);
       res.status(500).json({ error: "Failed to delete lesson" });
+    }
+  });
+
+  // Subscriptions routes
+  app.get("/api/clients/:clientId/subscriptions", requireAuth, async (req, res) => {
+    try {
+      const subscriptions = await storage.getClientSubscriptions(req.params.clientId);
+      res.json(subscriptions);
+    } catch (error) {
+      console.error("Error fetching client subscriptions:", error);
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.post("/api/subscriptions", requireAuth, requireRole(["instructor", "administrator"]), async (req, res) => {
+    try {
+      const data = insertSubscriptionSchema.parse(req.body);
+      const subscription = await storage.createSubscription(data);
+      res.status(201).json(subscription);
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(400).json({ error: "Failed to create subscription" });
     }
   });
 

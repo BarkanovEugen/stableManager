@@ -39,6 +39,10 @@ export interface IStorage {
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
   deleteClient(id: string): Promise<void>;
+
+  // Subscriptions
+  getClientSubscriptions(clientId: string): Promise<Subscription[]>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   
   // Certificates
   getAllCertificates(): Promise<Certificate[]>;
@@ -177,6 +181,16 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClient(id: string): Promise<void> {
     await db.delete(clients).where(eq(clients.id, id));
+  }
+
+  // Subscriptions
+  async getClientSubscriptions(clientId: string): Promise<Subscription[]> {
+    return await db.select().from(subscriptions).where(eq(subscriptions.clientId, clientId));
+  }
+
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const [created] = await db.insert(subscriptions).values(subscription).returning();
+    return created;
   }
 
   // Certificates

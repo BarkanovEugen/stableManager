@@ -47,6 +47,15 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
     queryKey: ["/api/horses"],
   });
 
+  const { data: clientSubscriptions } = useQuery({
+    queryKey: ["/api/clients", formData.clientId, "subscriptions"],
+    queryFn: () => 
+      formData.clientId 
+        ? fetch(`/api/clients/${formData.clientId}/subscriptions`).then(res => res.json())
+        : Promise.resolve([]),
+    enabled: !!formData.clientId,
+  });
+
   const createClientMutation = useMutation({
     mutationFn: async (name: string) => {
       const response = await fetch("/api/clients", {
@@ -107,6 +116,27 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
   const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(formData.clientSearch.toLowerCase())
   ) || [];
+
+  const activeSubscription = clientSubscriptions?.find((sub: any) => 
+    sub.lessonsRemaining > 0 && new Date(sub.expiresAt) > new Date()
+  );
+
+  const getPaymentOptions = () => {
+    const options = [
+      { value: "cash", label: "Наличные (1500 ₽)" },
+      { value: "certificate", label: "Сертификат (1500 ₽)" },
+    ];
+
+    if (activeSubscription) {
+      const expiryDate = new Date(activeSubscription.expiresAt).toLocaleDateString("ru-RU");
+      options.push({
+        value: "subscription",
+        label: `Абонемент (${activeSubscription.lessonsRemaining} занятий до ${expiryDate})`
+      });
+    }
+
+    return options;
+  };
 
   const handleClientSelect = (client: Client) => {
     setFormData({
@@ -320,9 +350,11 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
                   <SelectValue placeholder="Выберите тип оплаты" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Наличные</SelectItem>
-                  <SelectItem value="subscription">Абонемент</SelectItem>
-                  <SelectItem value="certificate">Сертификат</SelectItem>
+                  {getPaymentOptions().map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
