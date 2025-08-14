@@ -1,12 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Calendar, Rabbit, RussianRuble, UserPlus } from "lucide-react";
+import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
 
 export default function Dashboard() {
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+
   useEffect(() => {
     document.getElementById("page-title")!.textContent = "Дашборд";
   }, []);
+
+  const handleCompleteLesson = (lessonId: string) => {
+    setSelectedLessonId(lessonId);
+  };
 
   const { data: horseStats } = useQuery({
     queryKey: ["/api/statistics/horses"],
@@ -17,13 +25,23 @@ export default function Dashboard() {
   });
 
   const { data: lessons } = useQuery({
-    queryKey: ["/api/lessons", {
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0]
-    }],
+    queryKey: ["/api/lessons"],
   });
 
-  const todayLessons = Array.isArray(lessons) ? lessons.length : 0;
+  const { data: upcomingLessons } = useQuery({
+    queryKey: ["/api/lessons", "upcoming"],
+    queryFn: () => {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      return fetch(`/api/lessons?startDate=${today.toISOString().split('T')[0]}&endDate=${nextWeek.toISOString().split('T')[0]}`).then(res => res.json());
+    },
+  });
+
+  const todayLessons = Array.isArray(lessons) ? lessons.filter((lesson: any) => {
+    const lessonDate = new Date(lesson.date).toDateString();
+    const today = new Date().toDateString();
+    return lessonDate === today;
+  }).length : 0;
   const activeHorses = Array.isArray(horseStats) ? horseStats.filter((horse: any) => horse.totalLessons > 0).length : 0;
   const monthlyRevenue = (revenueData && typeof revenueData === 'object' && 'revenue' in revenueData) ? revenueData.revenue : 0;
 
@@ -111,13 +129,13 @@ export default function Dashboard() {
             <CardTitle data-testid="recent-lessons-title">Ближайшие занятия</CardTitle>
           </CardHeader>
           <CardContent>
-            {!Array.isArray(lessons) || lessons.length === 0 ? (
+            {!Array.isArray(upcomingLessons) || upcomingLessons.length === 0 ? (
               <p className="text-muted-foreground text-center py-4" data-testid="no-lessons-message">
-                Нет запланированных занятий на сегодня
+                Нет запланированных занятий на ближайшую неделю
               </p>
             ) : (
               <div className="space-y-3">
-                {(lessons || []).slice(0, 5).map((lesson: any) => (
+                {(upcomingLessons || []).slice(0, 5).map((lesson: any) => (
                   <div key={lesson.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-semibold mr-3">
@@ -135,13 +153,25 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium" data-testid={`lesson-instructor-${lesson.id}`}>
-                        {lesson.lessonInstructors[0]?.instructor.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground" data-testid={`lesson-horse-${lesson.id}`}>
-                        {lesson.lessonHorses[0]?.horse.nickname}
-                      </p>
+                    <div className="text-right flex items-center gap-2">
+                      <div>
+                        <p className="text-sm font-medium" data-testid={`lesson-instructor-${lesson.id}`}>
+                          {lesson.lessonInstructors[0]?.instructor.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground" data-testid={`lesson-horse-${lesson.id}`}>
+                          {lesson.lessonHorses[0]?.horse.nickname}
+                        </p>
+                      </div>
+                      {lesson.status === "planned" && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleCompleteLesson(lesson.id)}
+                          data-testid={`button-complete-${lesson.id}`}
+                        >
+                          Завершить
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -195,6 +225,13 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {selectedLessonId && (
+        <LessonCompletionModal
+          lessonId={selectedLessonId}
+          onClose={() => setSelectedLessonId(null)}
+        />
+      )}
     </div>
   );
 }

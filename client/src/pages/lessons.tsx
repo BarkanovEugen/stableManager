@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Edit, CheckCircle } from "lucide-react";
 import CreateLessonModal from "@/components/lessons/create-lesson-modal";
+import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
 import LessonCalendar from "@/components/lessons/lesson-calendar";
 import type { LessonWithRelations } from "@shared/schema";
 
 export default function LessonsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -30,17 +32,38 @@ export default function LessonsPage() {
     return true;
   }) || [];
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (lesson: LessonWithRelations) => {
+    const badges = [];
+    
+    // Status badge
+    switch (lesson.status) {
       case "planned":
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">Запланировано</Badge>;
+        badges.push(<Badge key="status" variant="default" className="bg-blue-100 text-blue-800">Запланировано</Badge>);
+        break;
       case "completed":
-        return <Badge variant="default" className="bg-green-100 text-green-800">Завершено</Badge>;
+        badges.push(<Badge key="status" variant="default" className="bg-green-100 text-green-800">Завершено</Badge>);
+        break;
       case "cancelled":
-        return <Badge variant="default" className="bg-red-100 text-red-800">Отменено</Badge>;
+        badges.push(<Badge key="status" variant="default" className="bg-red-100 text-red-800">Отменено</Badge>);
+        break;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        badges.push(<Badge key="status" variant="secondary">{lesson.status}</Badge>);
     }
+
+    // Payment status badge
+    if (lesson.status === "completed") {
+      if (lesson.isPaid) {
+        badges.push(<Badge key="payment" variant="default" className="bg-green-100 text-green-800 ml-1">Оплачено</Badge>);
+      } else {
+        badges.push(<Badge key="debt" variant="default" className="bg-red-100 text-red-800 ml-1">Долг</Badge>);
+      }
+    }
+
+    return <div className="flex flex-wrap gap-1">{badges}</div>;
+  };
+
+  const handleCompleteLesson = (lessonId: string) => {
+    setSelectedLessonId(lessonId);
   };
 
   const getPaymentTypeBadge = (paymentType: string) => {
@@ -232,13 +255,29 @@ export default function LessonsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap" data-testid={`lesson-status-${lesson.id}`}>
-                        {getStatusBadge(lesson.status)}
+                        {getStatusBadge(lesson)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm" data-testid={`button-edit-${lesson.id}`}>
-                            Редактировать
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            data-testid={`button-edit-${lesson.id}`}
+                            onClick={() => {/* TODO: Implement edit functionality */}}
+                          >
+                            <Edit className="w-4 h-4" />
                           </Button>
+                          {lesson.status === "planned" && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-green-600"
+                              onClick={() => handleCompleteLesson(lesson.id)}
+                              data-testid={`button-complete-${lesson.id}`}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </Button>
+                          )}
                           {lesson.status === "planned" && (
                             <Button variant="ghost" size="sm" className="text-red-600" data-testid={`button-cancel-${lesson.id}`}>
                               Отменить
@@ -257,6 +296,13 @@ export default function LessonsPage() {
 
       {showCreateModal && (
         <CreateLessonModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {selectedLessonId && (
+        <LessonCompletionModal
+          lessonId={selectedLessonId}
+          onClose={() => setSelectedLessonId(null)}
+        />
       )}
     </div>
   );
