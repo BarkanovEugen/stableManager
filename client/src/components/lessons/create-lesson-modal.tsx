@@ -99,7 +99,10 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate multiple related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics/horses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics/revenue"] });
       toast({
         title: "Занятие создано",
         description: "Новое занятие успешно добавлено в систему",

@@ -18,6 +18,8 @@ export default function ClientsPage() {
 
   const { data: clients, isLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   const filteredClients = clients?.filter(client =>

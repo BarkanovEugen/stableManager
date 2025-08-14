@@ -24,6 +24,8 @@ export default function LessonsPage() {
 
   const { data: lessons, isLoading } = useQuery<LessonWithRelations[]>({
     queryKey: ["/api/lessons"],
+    refetchInterval: 15000, // Refresh every 15 seconds
+    refetchOnWindowFocus: true,
   });
 
   const filteredLessons = lessons?.filter(lesson => {

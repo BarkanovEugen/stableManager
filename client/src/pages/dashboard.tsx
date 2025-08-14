@@ -18,14 +18,20 @@ export default function Dashboard() {
 
   const { data: horseStats } = useQuery({
     queryKey: ["/api/statistics/horses"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   const { data: revenueData } = useQuery({
     queryKey: ["/api/statistics/revenue"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   const { data: lessons } = useQuery({
     queryKey: ["/api/lessons"],
+    refetchInterval: 15000, // Refresh every 15 seconds for lessons
+    refetchOnWindowFocus: true,
   });
 
   const { data: upcomingLessons } = useQuery({
@@ -35,6 +41,8 @@ export default function Dashboard() {
       const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       return fetch(`/api/lessons?startDate=${today.toISOString().split('T')[0]}&endDate=${nextWeek.toISOString().split('T')[0]}`).then(res => res.json());
     },
+    refetchInterval: 15000, // Refresh every 15 seconds for upcoming lessons
+    refetchOnWindowFocus: true,
   });
 
   const todayLessons = Array.isArray(lessons) ? lessons.filter((lesson: any) => {

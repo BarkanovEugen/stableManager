@@ -20,6 +20,8 @@ export default function HorsesPage() {
 
   const { data: horses, isLoading } = useQuery<Horse[]>({
     queryKey: ["/api/horses"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   const { data: horseStats } = useQuery({

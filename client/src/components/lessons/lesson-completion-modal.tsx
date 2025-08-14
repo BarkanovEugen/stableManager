@@ -49,7 +49,11 @@ export default function LessonCompletionModal({ lessonId, onClose }: LessonCompl
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate multiple related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics/horses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics/revenue"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
       toast({
         title: "Занятие завершено",
         description: "Статус занятия успешно обновлен",

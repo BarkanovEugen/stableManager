@@ -28,7 +28,8 @@ Preferred communication style: Simple, everyday language.
 ### Dashboard Improvements
 - **Upcoming Lessons**: Fixed to show next week's lessons instead of just today
 - **Completion Buttons**: Added quick completion functionality to dashboard lesson cards
-- **Real-time Updates**: Improved lesson status and subscription tracking
+- **Real-time Updates**: Automatic data refresh every 15-30 seconds without page reload
+- **Smart Query Invalidation**: Related data updates automatically when actions are performed
 
 ## System Architecture
 
