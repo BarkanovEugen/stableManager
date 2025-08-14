@@ -273,6 +273,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Subscriptions routes
+  app.get("/api/subscriptions", requireAuth, async (req, res) => {
+    try {
+      const subscriptions = await storage.getAllSubscriptions();
+      res.json(subscriptions);
+    } catch (error) {
+      console.error("Error fetching subscriptions:", error);
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.get("/api/subscriptions/:id", requireAuth, async (req, res) => {
+    try {
+      const subscription = await storage.getSubscription(req.params.id);
+      if (!subscription) {
+        return res.status(404).json({ error: "Subscription not found" });
+      }
+      res.json(subscription);
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+      res.status(500).json({ error: "Failed to fetch subscription" });
+    }
+  });
+
+  app.get("/api/subscriptions/:id/lessons", requireAuth, async (req, res) => {
+    try {
+      const lessons = await storage.getSubscriptionLessons(req.params.id);
+      res.json(lessons);
+    } catch (error) {
+      console.error("Error fetching subscription lessons:", error);
+      res.status(500).json({ error: "Failed to fetch subscription lessons" });
+    }
+  });
+
   app.get("/api/clients/:clientId/subscriptions", requireAuth, async (req, res) => {
     try {
       const subscriptions = await storage.getClientSubscriptions(req.params.clientId);

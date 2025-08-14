@@ -11,6 +11,7 @@ import HorsesPage from "@/pages/horses";
 import ClientsPage from "@/pages/clients";
 import InstructorsPage from "@/pages/instructors";
 import CertificatesPage from "@/pages/certificates";
+import SubscriptionsPage from "@/pages/subscriptions";
 import UsersPage from "@/pages/users";
 import StatisticsPage from "@/pages/statistics";
 import Sidebar from "@/components/layout/sidebar";
@@ -31,6 +32,7 @@ function AuthenticatedApp() {
             <Route path="/clients" component={ClientsPage} />
             <Route path="/instructors" component={InstructorsPage} />
             <Route path="/certificates" component={CertificatesPage} />
+            <Route path="/subscriptions" component={SubscriptionsPage} />
             <Route path="/users" component={UsersPage} />
             <Route path="/statistics" component={StatisticsPage} />
             <Route path="/" component={Dashboard} />

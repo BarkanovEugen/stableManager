@@ -8,6 +8,28 @@ This is a comprehensive CRM (Customer Relationship Management) system designed f
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Major Updates (December 2024)
+
+### Subscription Management System
+- **Complete Subscription Page**: Created dedicated subscription management interface
+- **Subscription Creation**: Modal for creating subscriptions with client selection or new client creation
+- **Subscription Status Tracking**: Visual status indicators (active, expired, used) with progress bars
+- **Subscription Details**: Modal showing subscription usage history and associated lessons
+- **Dynamic Payment Options**: Lesson creation now shows subscription availability and remaining lessons
+- **Subscription Integration**: Payment type selection intelligently shows/hides subscription options
+
+### Lesson Enhancement System
+- **Duration Tracking**: Added lesson duration field (default 45 minutes) for accurate time tracking
+- **Quick Completion**: Fast lesson completion buttons on both dashboard and lessons list
+- **Payment Status Tags**: Visual indicators for paid lessons ("Оплачено") and unpaid lessons ("Долг")
+- **Completion Modal**: Comprehensive lesson completion workflow with payment confirmation
+- **Horse Time Tracking**: Lesson duration automatically added to horse workload statistics
+
+### Dashboard Improvements
+- **Upcoming Lessons**: Fixed to show next week's lessons instead of just today
+- **Completion Buttons**: Added quick completion functionality to dashboard lesson cards
+- **Real-time Updates**: Improved lesson status and subscription tracking
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -32,8 +54,8 @@ The system uses a comprehensive relational database schema with the following ma
 - **Instructors**: Instructor profiles with specializations
 - **Clients**: Client management with contact information
 - **Certificates**: Gift certificate system with status tracking
-- **Lessons**: Lesson scheduling with multiple instructors and horses per lesson
-- **Subscriptions**: Subscription-based payment tracking
+- **Lessons**: Lesson scheduling with multiple instructors and horses per lesson, includes duration tracking (default 45 minutes)
+- **Subscriptions**: Comprehensive subscription management with status tracking (active, expired, used), duration in months (default 6), and lesson count (default 4)
 
 ### Authentication & Authorization
 - **VK ID Integration**: OAuth authentication using VK (VKontakte) social network
@@ -48,6 +70,8 @@ The system uses a comprehensive relational database schema with the following ma
 - **Error Handling**: Centralized error handling with proper HTTP status codes
 - **Request/Response**: JSON-based communication with TypeScript type safety
 - **Statistics Endpoints**: Specialized endpoints for reporting and analytics
+- **Subscription Management**: Complete CRUD operations for subscription lifecycle
+- **Lesson Completion System**: Quick lesson completion with payment tracking and automatic subscription usage
 
 ### File Upload System
 - **Provider**: Google Cloud Storage for file storage

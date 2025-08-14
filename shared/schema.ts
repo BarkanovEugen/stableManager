@@ -72,12 +72,17 @@ export const certificates = pgTable("certificates", {
   usedAt: timestamp("used_at"),
 });
 
+// Subscription status enum
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "expired", "used"]);
+
 // Subscriptions table
 export const subscriptions = pgTable("subscriptions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   clientId: varchar("client_id").notNull().references(() => clients.id),
   lessonsRemaining: integer("lessons_remaining").notNull(),
   totalLessons: integer("total_lessons").notNull(),
+  durationMonths: integer("duration_months").notNull().default(6),
+  status: subscriptionStatusEnum("status").notNull().default("active"),
   expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -87,6 +92,7 @@ export const lessons = pgTable("lessons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   clientId: varchar("client_id").notNull().references(() => clients.id),
   date: timestamp("date").notNull(),
+  duration: integer("duration").notNull().default(45), // in minutes
   type: lessonTypeEnum("type").notNull(),
   paymentType: paymentTypeEnum("payment_type").notNull(),
   cost: decimal("cost", { precision: 10, scale: 2 }).notNull(),

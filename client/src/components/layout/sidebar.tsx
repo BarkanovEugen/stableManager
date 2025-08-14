@@ -9,6 +9,7 @@ import {
   Users, 
   Bus, 
   Gift, 
+  CreditCard,
   Shield, 
   BarChart3, 
   LayoutDashboard,
@@ -24,6 +25,7 @@ const navigationItems = [
   { path: "/clients", label: "Клиенты", icon: Users, roles: ["observer", "instructor", "administrator"] },
   { path: "/instructors", label: "Инструкторы", icon: Bus, roles: ["instructor", "administrator"] },
   { path: "/certificates", label: "Сертификаты", icon: Gift, roles: ["instructor", "administrator"] },
+  { path: "/subscriptions", label: "Абонементы", icon: CreditCard, roles: ["instructor", "administrator"] },
   { path: "/users", label: "Пользователи", icon: Shield, roles: ["administrator"] },
   { path: "/statistics", label: "Статистика", icon: BarChart3, roles: ["instructor", "administrator"] },
 ];

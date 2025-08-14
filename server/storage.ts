@@ -41,8 +41,12 @@ export interface IStorage {
   deleteClient(id: string): Promise<void>;
 
   // Subscriptions
+  getAllSubscriptions(): Promise<Subscription[]>;
+  getSubscription(id: string): Promise<Subscription | undefined>;
   getClientSubscriptions(clientId: string): Promise<Subscription[]>;
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscription(id: string, subscription: Partial<InsertSubscription>): Promise<Subscription>;
+  getSubscriptionLessons(subscriptionId: string): Promise<LessonWithRelations[]>;
   
   // Certificates
   getAllCertificates(): Promise<Certificate[]>;
@@ -184,13 +188,61 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Subscriptions
+  async getAllSubscriptions(): Promise<Subscription[]> {
+    return await db.query.subscriptions.findMany({
+      with: {
+        client: true,
+      },
+      orderBy: desc(subscriptions.createdAt),
+    });
+  }
+
+  async getSubscription(id: string): Promise<Subscription | undefined> {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.id, id),
+      with: {
+        client: true,
+      },
+    });
+    return subscription || undefined;
+  }
+
   async getClientSubscriptions(clientId: string): Promise<Subscription[]> {
-    return await db.select().from(subscriptions).where(eq(subscriptions.clientId, clientId));
+    return await db.select().from(subscriptions)
+      .where(eq(subscriptions.clientId, clientId))
+      .orderBy(desc(subscriptions.createdAt));
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
     const [created] = await db.insert(subscriptions).values(subscription).returning();
     return created;
+  }
+
+  async updateSubscription(id: string, subscription: Partial<InsertSubscription>): Promise<Subscription> {
+    const [updated] = await db.update(subscriptions).set(subscription).where(eq(subscriptions.id, id)).returning();
+    return updated;
+  }
+
+  async getSubscriptionLessons(subscriptionId: string): Promise<LessonWithRelations[]> {
+    return await db.query.lessons.findMany({
+      where: eq(lessons.subscriptionId, subscriptionId),
+      with: {
+        client: true,
+        certificate: true,
+        subscription: true,
+        lessonInstructors: {
+          with: {
+            instructor: true,
+          },
+        },
+        lessonHorses: {
+          with: {
+            horse: true,
+          },
+        },
+      },
+      orderBy: desc(lessons.date),
+    });
   }
 
   // Certificates

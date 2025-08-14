@@ -19,6 +19,7 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
   const [formData, setFormData] = useState({
     date: "",
     time: "",
+    duration: "45",
     clientId: "",
     clientSearch: "",
     type: "",
@@ -80,6 +81,7 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
       const payload = {
         clientId: data.clientId,
         date: lessonDate.toISOString(),
+        duration: parseInt(data.duration),
         type: data.type,
         paymentType: data.paymentType,
         cost: parseFloat(data.cost),
@@ -223,7 +225,7 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Дата*</Label>
               <Input
@@ -243,6 +245,23 @@ export default function CreateLessonModal({ onClose }: CreateLessonModalProps) {
                 required
                 data-testid="input-lesson-time"
               />
+            </div>
+            <div>
+              <Label>Длительность (мин)*</Label>
+              <Select 
+                value={formData.duration} 
+                onValueChange={(value) => setFormData({ ...formData, duration: value })}
+              >
+                <SelectTrigger data-testid="select-lesson-duration">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 минут</SelectItem>
+                  <SelectItem value="45">45 минут</SelectItem>
+                  <SelectItem value="60">60 минут</SelectItem>
+                  <SelectItem value="90">90 минут</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
