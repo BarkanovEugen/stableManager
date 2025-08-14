@@ -36,11 +36,12 @@ export default function InstructorsPage() {
 
   const getInstructorStats = (instructorId: string) => {
     if (!instructorStats || !Array.isArray(instructorStats)) {
-      return { totalLessons: 0, totalRevenue: 0 };
+      return { totalLessons: 0, totalRevenue: 0, totalHours: 0 };
     }
     return instructorStats.find((stat: any) => stat.instructorId === instructorId) || {
       totalLessons: 0,
-      totalRevenue: 0
+      totalRevenue: 0,
+      totalHours: 0
     };
   };
 
@@ -157,7 +158,7 @@ export default function InstructorsPage() {
                       <div>
                         <div className="text-muted-foreground">Часов</div>
                         <div className="font-semibold" data-testid={`instructor-hours-${instructor.id}`}>
-                          {stats.totalHours.toFixed(1)}
+                          {(stats.totalHours || 0).toFixed(1)}
                         </div>
                       </div>
                       <div>
