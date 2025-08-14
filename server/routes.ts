@@ -182,6 +182,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/clients/:id", requireAuth, requireRole(["instructor", "administrator"]), async (req, res) => {
+    try {
+      const data = insertClientSchema.partial().parse(req.body);
+      const client = await storage.updateClient(req.params.id, data);
+      res.json(client);
+    } catch (error) {
+      console.error("Error updating client:", error);
+      res.status(400).json({ error: "Failed to update client" });
+    }
+  });
+
+  app.delete("/api/clients/:id", requireAuth, requireRole(["administrator"]), async (req, res) => {
+    try {
+      await storage.deleteClient(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
   // Certificates routes
   app.get("/api/certificates", requireAuth, async (req, res) => {
     try {

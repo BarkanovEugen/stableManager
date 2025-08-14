@@ -41,7 +41,7 @@ export default function EditClientModal({ client, onClose }: EditClientModalProp
       if (!response.ok) throw new Error("Failed to update client");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast({
         title: "Клиент обновлен",
@@ -50,9 +50,10 @@ export default function EditClientModal({ client, onClose }: EditClientModalProp
       onClose();
     },
     onError: (error) => {
+      console.error("Client update error:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось обновить клиента. Попробуйте еще раз.",
+        description: `Не удалось обновить клиента: ${error.message}`,
         variant: "destructive",
       });
     },
