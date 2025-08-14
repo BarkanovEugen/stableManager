@@ -5,12 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Search, Phone, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import EditClientModal from "@/components/clients/edit-client-modal";
+import ClientLessonsModal from "@/components/clients/client-lessons-modal";
 import type { Client } from "@shared/schema";
 
 export default function ClientsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showLessonsModal, setShowLessonsModal] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
@@ -126,7 +130,16 @@ export default function ClientsPage() {
                     >
                       Редактировать
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1" data-testid={`button-view-lessons-${client.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedClientId(client.id);
+                        setShowLessonsModal(true);
+                      }}
+                      data-testid={`button-view-lessons-${client.id}`}
+                    >
                       Занятия
                     </Button>
                   </div>
@@ -139,6 +152,26 @@ export default function ClientsPage() {
 
       {showCreateModal && (
         <CreateClientModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {showEditModal && editingClientId && (
+        <EditClientModal
+          client={clients?.find(c => c.id === editingClientId)!}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingClientId(null);
+          }}
+        />
+      )}
+
+      {showLessonsModal && selectedClientId && (
+        <ClientLessonsModal
+          client={clients?.find(c => c.id === selectedClientId)!}
+          onClose={() => {
+            setShowLessonsModal(false);
+            setSelectedClientId(null);
+          }}
+        />
       )}
     </div>
   );
