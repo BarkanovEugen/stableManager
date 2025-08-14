@@ -92,15 +92,21 @@ export class VKAuthManager {
         showAlternativeLogin: true
       })
       .on(window.VKIDSDK!.WidgetEvents.ERROR, (error: any) => {
+        console.error('VK Widget Error:', error);
         reject(error);
       })
       .on(window.VKIDSDK!.FloatingOneTapInternalEvents.LOGIN_SUCCESS, (payload: VKAuthPayload) => {
+        console.log('VK Login Success payload:', payload);
         window.VKIDSDK!.Auth.exchangeCode(payload.code, payload.device_id)
           .then((data) => {
+            console.log('VK Auth exchange data:', data);
             this.floatingOneTap.close();
             resolve(data);
           })
-          .catch(reject);
+          .catch((error) => {
+            console.error('VK Auth exchange error:', error);
+            reject(error);
+          });
       });
     });
   }

@@ -23,25 +23,20 @@ interface VKUserData {
 
 export async function authenticateVK(req: Request, res: Response): Promise<void> {
   try {
-    const { accessToken } = req.body;
+    const { access_token, user_id, first_name, last_name, email } = req.body;
     
-    if (!accessToken) {
-      res.status(400).json({ error: "Access token is required" });
+    if (!access_token || !user_id) {
+      res.status(400).json({ error: "Access token and user ID are required" });
       return;
     }
 
-    // Verify token with VK API (this would need actual VK API integration)
-    // For now, we'll simulate VK user data
-    const vkData = {
-      response: [{
-        id: '12345',
-        first_name: 'Тест',
-        last_name: 'Пользователь',
-        email: 'test@example.com'
-      }]
+    // Create VK user data from the request
+    const vkUser: VKUserData = {
+      id: user_id.toString(),
+      first_name: first_name || 'VK',
+      last_name: last_name || 'User',
+      email: email
     };
-    
-    const vkUser = vkData.response[0] as VKUserData;
     
     // Check if user exists
     let user = await storage.getUserByVkId(vkUser.id);
