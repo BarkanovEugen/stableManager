@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ChevronLeft, ChevronRight, Edit, CheckCircle } from "lucide-react";
 import CreateLessonModal from "@/components/lessons/create-lesson-modal";
+import EditLessonModal from "@/components/lessons/edit-lesson-modal";
 import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
 import LessonCalendar from "@/components/lessons/lesson-calendar";
 import type { LessonWithRelations } from "@shared/schema";
@@ -305,6 +306,16 @@ export default function LessonsPage() {
 
       {showCreateModal && (
         <CreateLessonModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {showEditModal && editingLessonId && (
+        <EditLessonModal
+          lessonId={editingLessonId}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingLessonId(null);
+          }}
+        />
       )}
 
       {selectedLessonId && (

@@ -231,8 +231,8 @@ export const insertCertificateSchema = createInsertSchema(certificates).omit({
   createdAt: true,
   usedAt: true,
 }).extend({
-  value: z.string().transform(val => parseFloat(val)),
-  expiresAt: z.string().transform(val => new Date(val)),
+  value: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  expiresAt: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
 });
 
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
