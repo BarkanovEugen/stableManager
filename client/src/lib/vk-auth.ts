@@ -1,78 +1,113 @@
-interface VKAuthConfig {
-  appId: string;
-  redirectUri?: string;
-  scope?: string;
+// VK ID Authentication utility
+export interface VKIDConfig {
+  app: number;
+  redirectUrl: string;
 }
 
-export class VKAuth {
-  private appId: string;
-  private redirectUri: string;
-  private scope: string;
+export interface VKAuthPayload {
+  code: string;
+  device_id: string;
+}
 
-  constructor(config: VKAuthConfig) {
-    this.appId = config.appId;
-    this.redirectUri = config.redirectUri || window.location.origin;
-    this.scope = config.scope || "email";
+declare global {
+  interface Window {
+    VKIDSDK?: {
+      Config: {
+        init(config: any): void;
+      };
+      FloatingOneTap: new () => {
+        render(options: any): {
+          on(event: string, callback: (data: any) => void): any;
+        };
+        close(): void;
+      };
+      WidgetEvents: {
+        ERROR: string;
+      };
+      FloatingOneTapInternalEvents: {
+        LOGIN_SUCCESS: string;
+      };
+      Auth: {
+        exchangeCode(code: string, deviceId: string): Promise<any>;
+      };
+      ConfigResponseMode: {
+        Callback: string;
+      };
+      ConfigSource: {
+        LOWCODE: string;
+      };
+    };
   }
+}
 
-  async authenticate(): Promise<string> {
+export class VKAuthManager {
+  private floatingOneTap: any = null;
+  private initialized = false;
+
+  constructor(private config: VKIDConfig) {}
+
+  init(): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Create popup window for VK OAuth
-      const popup = window.open(
-        this.getAuthUrl(),
-        "vk-auth",
-        "width=500,height=600,scrollbars=yes,resizable=yes"
-      );
-
-      if (!popup) {
-        reject(new Error("Failed to open popup window"));
+      if (this.initialized) {
+        resolve();
         return;
       }
 
-      // Listen for messages from popup
-      const messageHandler = (event: MessageEvent) => {
-        if (event.origin !== "https://oauth.vk.com") return;
+      // Wait for VKID SDK to load
+      const checkSDK = () => {
+        if (window.VKIDSDK) {
+          try {
+            window.VKIDSDK.Config.init({
+              app: this.config.app,
+              redirectUrl: this.config.redirectUrl,
+              responseMode: window.VKIDSDK.ConfigResponseMode.Callback,
+              source: window.VKIDSDK.ConfigSource.LOWCODE,
+              scope: '',
+            });
 
-        const { type, data } = event.data;
-
-        if (type === "vk-auth-success") {
-          window.removeEventListener("message", messageHandler);
-          popup.close();
-          resolve(data.accessToken);
-        } else if (type === "vk-auth-error") {
-          window.removeEventListener("message", messageHandler);
-          popup.close();
-          reject(new Error(data.error || "Authentication failed"));
+            this.floatingOneTap = new window.VKIDSDK.FloatingOneTap();
+            this.initialized = true;
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        } else {
+          setTimeout(checkSDK, 100);
         }
       };
 
-      window.addEventListener("message", messageHandler);
-
-      // Check if popup was closed manually
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener("message", messageHandler);
-          reject(new Error("Authentication was cancelled"));
-        }
-      }, 1000);
+      checkSDK();
     });
   }
 
-  private getAuthUrl(): string {
-    const params = new URLSearchParams({
-      client_id: this.appId,
-      redirect_uri: this.redirectUri,
-      response_type: "token",
-      scope: this.scope,
-      v: "5.131",
-    });
+  showLoginWidget(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (!this.floatingOneTap) {
+        reject(new Error('VK ID not initialized'));
+        return;
+      }
 
-    return `https://oauth.vk.com/authorize?${params.toString()}`;
+      this.floatingOneTap.render({
+        appName: 'StableManager',
+        showAlternativeLogin: true
+      })
+      .on(window.VKIDSDK!.WidgetEvents.ERROR, (error: any) => {
+        reject(error);
+      })
+      .on(window.VKIDSDK!.FloatingOneTapInternalEvents.LOGIN_SUCCESS, (payload: VKAuthPayload) => {
+        window.VKIDSDK!.Auth.exchangeCode(payload.code, payload.device_id)
+          .then((data) => {
+            this.floatingOneTap.close();
+            resolve(data);
+          })
+          .catch(reject);
+      });
+    });
   }
 }
 
-// Initialize VK Auth with app ID from environment
-export const vkAuth = new VKAuth({
-  appId: import.meta.env.VITE_VK_APP_ID || "your_vk_app_id",
+// Create VK auth manager instance
+export const vkAuth = new VKAuthManager({
+  app: 54045385,
+  redirectUrl: window.location.origin + '/',
 });

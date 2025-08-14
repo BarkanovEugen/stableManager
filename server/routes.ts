@@ -11,16 +11,36 @@ import { authenticateVK, requireAuth, requireRole } from "./auth";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/auth/vk", authenticateVK);
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
-    res.json(req.user);
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error("Get current user error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
   app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ error: "Could not log out" });
-      }
+    if (req.session?.destroy) {
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Could not log out" });
+        }
+        res.json({ success: true });
+      });
+    } else {
       res.json({ success: true });
-    });
+    }
   });
 
   // Users routes (admin only)
