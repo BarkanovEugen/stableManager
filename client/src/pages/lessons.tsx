@@ -13,6 +13,8 @@ import type { LessonWithRelations } from "@shared/schema";
 
 export default function LessonsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -66,6 +68,11 @@ export default function LessonsPage() {
 
   const handleCompleteLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
+  };
+
+  const handleEditLesson = (lessonId: string) => {
+    setEditingLessonId(lessonId);
+    setShowEditModal(true);
   };
 
   const getPaymentTypeBadge = (paymentType: string) => {
@@ -265,7 +272,7 @@ export default function LessonsPage() {
                             variant="ghost" 
                             size="sm" 
                             data-testid={`button-edit-${lesson.id}`}
-                            onClick={() => {/* TODO: Implement edit functionality */}}
+                            onClick={() => handleEditLesson(lesson.id)}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>

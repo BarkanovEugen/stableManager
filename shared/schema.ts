@@ -230,11 +230,16 @@ export const insertCertificateSchema = createInsertSchema(certificates).omit({
   id: true,
   createdAt: true,
   usedAt: true,
+}).extend({
+  value: z.string().transform(val => parseFloat(val)),
+  expiresAt: z.string().transform(val => new Date(val)),
 });
 
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
   id: true,
   createdAt: true,
+}).extend({
+  expiresAt: z.string().transform(val => new Date(val)),
 });
 
 export const insertLessonSchema = createInsertSchema(lessons).omit({

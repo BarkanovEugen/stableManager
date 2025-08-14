@@ -53,6 +53,12 @@ export async function authenticateVK(req: Request, res: Response): Promise<void>
         email: vkUser.email,
         role,
       });
+    } else {
+      // Update existing user info in case it changed
+      user = await storage.updateUser(user.id, {
+        name: `${vkUser.first_name} ${vkUser.last_name}`,
+        email: vkUser.email,
+      });
     }
 
     // Store user in session

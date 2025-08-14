@@ -9,6 +9,8 @@ import type { Client } from "@shared/schema";
 
 export default function ClientsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
@@ -112,7 +114,16 @@ export default function ClientsPage() {
                 </div>
                 {canCreateOrEdit && (
                   <div className="flex space-x-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" data-testid={`button-edit-client-${client.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1" 
+                      onClick={() => {
+                        setEditingClientId(client.id);
+                        setShowEditModal(true);
+                      }}
+                      data-testid={`button-edit-client-${client.id}`}
+                    >
                       Редактировать
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1" data-testid={`button-view-lessons-${client.id}`}>

@@ -1,15 +1,11 @@
-import type {
-  User, InsertUser,
-  Horse, InsertHorse,
-  Instructor, InsertInstructor,
-  Client, InsertClient,
-  Certificate, InsertCertificate,
-  Subscription, InsertSubscription,
-  Lesson, InsertLesson, LessonWithRelations,
-  LandingContent, InsertLandingContent
-} from "@shared/schema";
-import {
-  users, horses, instructors, clients, certificates, subscriptions, lessons, lessonInstructors, lessonHorses, landingContent
+import { 
+  users, horses, instructors, clients, certificates, subscriptions, lessons, 
+  lessonInstructors, lessonHorses, landingContent,
+  type User, type InsertUser, type Horse, type InsertHorse, 
+  type Instructor, type InsertInstructor, type Client, type InsertClient,
+  type Certificate, type InsertCertificate, type Subscription, type InsertSubscription,
+  type Lesson, type InsertLesson, type LandingContent, type InsertLandingContent,
+  type LessonWithRelations
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
@@ -32,6 +28,7 @@ export interface IStorage {
   
   // Instructors
   getAllInstructors(): Promise<Instructor[]>;
+  getActiveInstructors(): Promise<Instructor[]>;
   getInstructor(id: string): Promise<Instructor | undefined>;
   createInstructor(instructor: InsertInstructor): Promise<Instructor>;
   updateInstructor(id: string, instructor: Partial<InsertInstructor>): Promise<Instructor>;
@@ -40,6 +37,7 @@ export interface IStorage {
   // Clients
   getAllClients(): Promise<Client[]>;
   getClient(id: string): Promise<Client | undefined>;
+  searchClients(query: string): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
   deleteClient(id: string): Promise<void>;
@@ -51,7 +49,6 @@ export interface IStorage {
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   updateSubscription(id: string, subscription: Partial<InsertSubscription>): Promise<Subscription>;
   getSubscriptionLessons(subscriptionId: string): Promise<LessonWithRelations[]>;
-  getActiveSubscription(clientId: string): Promise<Subscription | undefined>;
   
   // Certificates
   getAllCertificates(): Promise<Certificate[]>;
@@ -60,6 +57,12 @@ export interface IStorage {
   createCertificate(certificate: InsertCertificate): Promise<Certificate>;
   updateCertificate(id: string, certificate: Partial<InsertCertificate>): Promise<Certificate>;
   deleteCertificate(id: string): Promise<void>;
+  
+  // Subscriptions
+  getClientSubscriptions(clientId: string): Promise<Subscription[]>;
+  getActiveSubscription(clientId: string): Promise<Subscription | undefined>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscription(id: string, subscription: Partial<InsertSubscription>): Promise<Subscription>;
   
   // Lessons
   getAllLessons(): Promise<LessonWithRelations[]>;
@@ -141,6 +144,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(instructors).orderBy(instructors.name);
   }
 
+  async getActiveInstructors(): Promise<Instructor[]> {
+    return await db.select().from(instructors).where(eq(instructors.isActive, true)).orderBy(instructors.name);
+  }
+
   async getInstructor(id: string): Promise<Instructor | undefined> {
     const [instructor] = await db.select().from(instructors).where(eq(instructors.id, id));
     return instructor || undefined;
@@ -162,12 +169,19 @@ export class DatabaseStorage implements IStorage {
 
   // Clients
   async getAllClients(): Promise<Client[]> {
-    return await db.select().from(clients).orderBy(desc(clients.createdAt));
+    return await db.select().from(clients).orderBy(clients.name);
   }
 
   async getClient(id: string): Promise<Client | undefined> {
     const [client] = await db.select().from(clients).where(eq(clients.id, id));
     return client || undefined;
+  }
+
+  async searchClients(query: string): Promise<Client[]> {
+    return await db.select().from(clients)
+      .where(sql`${clients.name} ILIKE ${'%' + query + '%'}`)
+      .orderBy(clients.name)
+      .limit(10);
   }
 
   async createClient(client: InsertClient): Promise<Client> {
@@ -184,74 +198,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(clients).where(eq(clients.id, id));
   }
 
-  // Subscriptions
-  async getAllSubscriptions(): Promise<Subscription[]> {
-    return await db.query.subscriptions.findMany({
-      with: {
-        client: true,
-      },
-      orderBy: desc(subscriptions.createdAt),
-    });
-  }
 
-  async getSubscription(id: string): Promise<Subscription | undefined> {
-    const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.id, id),
-      with: {
-        client: true,
-      },
-    });
-    return subscription || undefined;
-  }
-
-  async getClientSubscriptions(clientId: string): Promise<Subscription[]> {
-    return await db.select().from(subscriptions)
-      .where(eq(subscriptions.clientId, clientId))
-      .orderBy(desc(subscriptions.createdAt));
-  }
-
-  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
-    const [created] = await db.insert(subscriptions).values(subscription).returning();
-    return created;
-  }
-
-  async updateSubscription(id: string, subscription: Partial<InsertSubscription>): Promise<Subscription> {
-    const [updated] = await db.update(subscriptions).set(subscription).where(eq(subscriptions.id, id)).returning();
-    return updated;
-  }
-
-  async getSubscriptionLessons(subscriptionId: string): Promise<LessonWithRelations[]> {
-    return await db.query.lessons.findMany({
-      where: eq(lessons.subscriptionId, subscriptionId),
-      with: {
-        client: true,
-        certificate: true,
-        subscription: true,
-        lessonInstructors: {
-          with: {
-            instructor: true,
-          },
-        },
-        lessonHorses: {
-          with: {
-            horse: true,
-          },
-        },
-      },
-      orderBy: desc(lessons.date),
-    });
-  }
-
-  async getActiveSubscription(clientId: string): Promise<Subscription | undefined> {
-    const [subscription] = await db.select().from(subscriptions)
-      .where(and(
-        eq(subscriptions.clientId, clientId),
-        sql`${subscriptions.lessonsRemaining} > 0`,
-        sql`${subscriptions.expiresAt} IS NULL OR ${subscriptions.expiresAt} > NOW()`
-      ))
-      .orderBy(desc(subscriptions.createdAt));
-    return subscription || undefined;
-  }
 
   // Certificates
   async getAllCertificates(): Promise<Certificate[]> {
@@ -287,6 +234,17 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCertificate(id: string): Promise<void> {
     await db.delete(certificates).where(eq(certificates.id, id));
+  }
+
+  async getActiveSubscription(clientId: string): Promise<Subscription | undefined> {
+    const [subscription] = await db.select().from(subscriptions)
+      .where(and(
+        eq(subscriptions.clientId, clientId),
+        sql`${subscriptions.lessonsRemaining} > 0`,
+        sql`${subscriptions.expiresAt} IS NULL OR ${subscriptions.expiresAt} > NOW()`
+      ))
+      .orderBy(desc(subscriptions.createdAt));
+    return subscription || undefined;
   }
 
   // Lessons
@@ -332,7 +290,7 @@ export class DatabaseStorage implements IStorage {
           },
         },
       },
-      orderBy: desc(lessons.date),
+      orderBy: lessons.date,
     });
   }
 
@@ -361,67 +319,109 @@ export class DatabaseStorage implements IStorage {
   async createLesson(lesson: InsertLesson): Promise<LessonWithRelations> {
     const { instructorIds, horseIds, ...lessonData } = lesson;
     
-    // Create lesson
-    const [createdLesson] = await db.insert(lessons).values(lessonData).returning();
-    
-    // Create instructor associations
-    if (instructorIds?.length) {
-      await db.insert(lessonInstructors).values(
-        instructorIds.map(instructorId => ({
-          lessonId: createdLesson.id,
-          instructorId,
-        }))
-      );
-    }
-    
-    // Create horse associations
-    if (horseIds?.length) {
-      await db.insert(lessonHorses).values(
-        horseIds.map(horseId => ({
-          lessonId: createdLesson.id,
-          horseId,
-        }))
-      );
-    }
-    
-    // Return lesson with relations
-    return this.getLesson(createdLesson.id) as Promise<LessonWithRelations>;
+    return await db.transaction(async (tx) => {
+      // Create lesson
+      const [createdLesson] = await tx.insert(lessons).values(lessonData).returning();
+      
+      // Add instructors
+      if (instructorIds.length > 0) {
+        await tx.insert(lessonInstructors).values(
+          instructorIds.map(instructorId => ({
+            lessonId: createdLesson.id,
+            instructorId,
+          }))
+        );
+      }
+      
+      // Add horses
+      if (horseIds.length > 0) {
+        await tx.insert(lessonHorses).values(
+          horseIds.map(horseId => ({
+            lessonId: createdLesson.id,
+            horseId,
+          }))
+        );
+      }
+      
+      // Return lesson with relations
+      const lessonWithRelations = await tx.query.lessons.findFirst({
+        where: eq(lessons.id, createdLesson.id),
+        with: {
+          client: true,
+          certificate: true,
+          subscription: true,
+          lessonInstructors: {
+            with: {
+              instructor: true,
+            },
+          },
+          lessonHorses: {
+            with: {
+              horse: true,
+            },
+          },
+        },
+      });
+      
+      return lessonWithRelations!;
+    });
   }
 
   async updateLesson(id: string, lesson: Partial<InsertLesson>): Promise<LessonWithRelations> {
     const { instructorIds, horseIds, ...lessonData } = lesson;
     
-    // Update lesson
-    await db.update(lessons).set(lessonData).where(eq(lessons.id, id));
-    
-    // Update instructor associations if provided
-    if (instructorIds !== undefined) {
-      await db.delete(lessonInstructors).where(eq(lessonInstructors.lessonId, id));
-      if (instructorIds.length > 0) {
-        await db.insert(lessonInstructors).values(
-          instructorIds.map(instructorId => ({
-            lessonId: id,
-            instructorId,
-          }))
-        );
+    return await db.transaction(async (tx) => {
+      // Update lesson
+      const [updatedLesson] = await tx.update(lessons).set(lessonData).where(eq(lessons.id, id)).returning();
+      
+      // Update instructors if provided
+      if (instructorIds) {
+        await tx.delete(lessonInstructors).where(eq(lessonInstructors.lessonId, id));
+        if (instructorIds.length > 0) {
+          await tx.insert(lessonInstructors).values(
+            instructorIds.map(instructorId => ({
+              lessonId: id,
+              instructorId,
+            }))
+          );
+        }
       }
-    }
-    
-    // Update horse associations if provided
-    if (horseIds !== undefined) {
-      await db.delete(lessonHorses).where(eq(lessonHorses.lessonId, id));
-      if (horseIds.length > 0) {
-        await db.insert(lessonHorses).values(
-          horseIds.map(horseId => ({
-            lessonId: id,
-            horseId,
-          }))
-        );
+      
+      // Update horses if provided
+      if (horseIds) {
+        await tx.delete(lessonHorses).where(eq(lessonHorses.lessonId, id));
+        if (horseIds.length > 0) {
+          await tx.insert(lessonHorses).values(
+            horseIds.map(horseId => ({
+              lessonId: id,
+              horseId,
+            }))
+          );
+        }
       }
-    }
-    
-    // Return updated lesson with relations
-    return this.getLesson(id) as Promise<LessonWithRelations>;
+      
+      // Return lesson with relations
+      const lessonWithRelations = await tx.query.lessons.findFirst({
+        where: eq(lessons.id, id),
+        with: {
+          client: true,
+          certificate: true,
+          subscription: true,
+          lessonInstructors: {
+            with: {
+              instructor: true,
+            },
+          },
+          lessonHorses: {
+            with: {
+              horse: true,
+            },
+          },
+        },
+      });
+      
+      return lessonWithRelations!;
+    });
   }
 
   async deleteLesson(id: string): Promise<void> {
@@ -430,12 +430,11 @@ export class DatabaseStorage implements IStorage {
 
   // Statistics
   async getHorseWorkloadStats(startDate: Date, endDate: Date): Promise<{horseId: string, horseName: string, totalHours: number, totalLessons: number}[]> {
-    const results = await db
+    const result = await db
       .select({
         horseId: horses.id,
         horseName: horses.nickname,
-        totalHours: sql<number>`COALESCE(SUM(${lessons.duration}) / 60.0, 0)`,
-        totalLessons: sql<number>`COALESCE(COUNT(${lessons.id}), 0)`,
+        totalLessons: count(lessons.id),
       })
       .from(horses)
       .leftJoin(lessonHorses, eq(horses.id, lessonHorses.horseId))
@@ -448,21 +447,19 @@ export class DatabaseStorage implements IStorage {
       .groupBy(horses.id, horses.nickname)
       .orderBy(horses.nickname);
 
-    return results.map(row => ({
-      horseId: row.horseId,
-      horseName: row.horseName,
-      totalHours: Number(row.totalHours) || 0,
-      totalLessons: Number(row.totalLessons) || 0,
+    // Calculate hours assuming 1.5 hours per lesson on average
+    return result.map(row => ({
+      ...row,
+      totalHours: row.totalLessons * 1.5,
     }));
   }
 
   async getInstructorStats(startDate: Date, endDate: Date): Promise<{instructorId: string, instructorName: string, totalHours: number, totalLessons: number}[]> {
-    const results = await db
+    const result = await db
       .select({
         instructorId: instructors.id,
         instructorName: instructors.name,
-        totalHours: sql<number>`COALESCE(SUM(${lessons.duration}) / 60.0, 0)`,
-        totalLessons: sql<number>`COALESCE(COUNT(${lessons.id}), 0)`,
+        totalLessons: count(lessons.id),
       })
       .from(instructors)
       .leftJoin(lessonInstructors, eq(instructors.id, lessonInstructors.instructorId))
@@ -475,33 +472,33 @@ export class DatabaseStorage implements IStorage {
       .groupBy(instructors.id, instructors.name)
       .orderBy(instructors.name);
 
-    return results.map(row => ({
-      instructorId: row.instructorId,
-      instructorName: row.instructorName,
-      totalHours: Number(row.totalHours) || 0,
-      totalLessons: Number(row.totalLessons) || 0,
+    // Calculate hours assuming 1.5 hours per lesson on average
+    return result.map(row => ({
+      ...row,
+      totalHours: row.totalLessons * 1.5,
     }));
   }
 
   async getMonthlyRevenue(year: number, month: number): Promise<number> {
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59);
-
+    const endDate = new Date(year, month, 0);
+    
     const result = await db
       .select({
-        revenue: sql<string>`COALESCE(SUM(${lessons.cost}), 0)`,
+        totalRevenue: sql<number>`COALESCE(SUM(${lessons.cost}), 0)`,
       })
       .from(lessons)
       .where(and(
         gte(lessons.date, startDate),
         lte(lessons.date, endDate),
-        eq(lessons.status, "completed")
+        eq(lessons.status, "completed"),
+        eq(lessons.isPaid, true)
       ));
 
-    return parseFloat(result[0]?.revenue || "0");
+    return result[0]?.totalRevenue || 0;
   }
 
-  // Landing Content
+  // Landing content
   async getAllLandingContent(): Promise<LandingContent[]> {
     return await db.select().from(landingContent).orderBy(landingContent.section);
   }
@@ -517,7 +514,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLandingContent(id: string, content: Partial<InsertLandingContent>): Promise<LandingContent> {
-    const [updated] = await db.update(landingContent).set(content).where(eq(landingContent.id, id)).returning();
+    const [updated] = await db.update(landingContent).set({
+      ...content,
+      updatedAt: new Date(),
+    }).where(eq(landingContent.id, id)).returning();
     return updated;
   }
 }
