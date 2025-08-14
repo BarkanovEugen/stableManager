@@ -38,7 +38,15 @@ export default function EditClientModal({ client, onClose }: EditClientModalProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error("Failed to update client");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update client: ${response.status} ${errorText}`);
+      }
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Expected JSON response, got: ${text.substring(0, 100)}`);
+      }
       return response.json();
     },
     onSuccess: (data) => {

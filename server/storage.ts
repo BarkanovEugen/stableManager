@@ -32,6 +32,7 @@ export interface IStorage {
   
   // Instructors
   getAllInstructors(): Promise<Instructor[]>;
+  getActiveInstructors(): Promise<Instructor[]>;
   getInstructor(id: string): Promise<Instructor | undefined>;
   createInstructor(instructor: InsertInstructor): Promise<Instructor>;
   updateInstructor(id: string, instructor: Partial<InsertInstructor>): Promise<Instructor>;
@@ -39,6 +40,7 @@ export interface IStorage {
   
   // Clients
   getAllClients(): Promise<Client[]>;
+  searchClients(query: string): Promise<Client[]>;
   getClient(id: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
@@ -141,6 +143,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(instructors).orderBy(instructors.name);
   }
 
+  async getActiveInstructors(): Promise<Instructor[]> {
+    return await db.select().from(instructors).where(eq(instructors.isActive, true)).orderBy(instructors.name);
+  }
+
   async getInstructor(id: string): Promise<Instructor | undefined> {
     const [instructor] = await db.select().from(instructors).where(eq(instructors.id, id));
     return instructor || undefined;
@@ -163,6 +169,16 @@ export class DatabaseStorage implements IStorage {
   // Clients
   async getAllClients(): Promise<Client[]> {
     return await db.select().from(clients).orderBy(desc(clients.createdAt));
+  }
+
+  async searchClients(query: string): Promise<Client[]> {
+    return await db.select().from(clients)
+      .where(
+        sql`lower(${clients.name}) LIKE ${`%${query.toLowerCase()}%`} OR 
+            lower(${clients.phone}) LIKE ${`%${query.toLowerCase()}%`} OR 
+            lower(${clients.email}) LIKE ${`%${query.toLowerCase()}%`}`
+      )
+      .orderBy(clients.name);
   }
 
   async getClient(id: string): Promise<Client | undefined> {
