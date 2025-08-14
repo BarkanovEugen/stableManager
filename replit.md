@@ -8,6 +8,16 @@ This is a comprehensive CRM (Customer Relationship Management) system designed f
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Major Updates (January 2025)
+
+### Edit Functionality Restoration
+- **Complete Edit Modal System**: Fixed all broken edit functionality across the application
+- **Edit Lesson Modal**: Created comprehensive lesson editing with pre-populated fields, instructor/horse selection, and validation
+- **Edit Horse Modal**: Added missing horse edit modal with all required fields and proper validation
+- **Dashboard Enhancements**: Updated upcoming lessons display to show both date (DD.MM) and time (HH:MM)
+- **Certificate Creation Fix**: Resolved Zod validation errors by updating schema to handle both string and number inputs
+- **Real-time Data Updates**: All edit operations trigger automatic cache invalidation for immediate UI updates
+
 ## Recent Major Updates (December 2024)
 
 ### Subscription Management System

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Rabbit as HorseIcon, Edit, Trash2 } from "lucide-react";
+import EditHorseModal from "./edit-horse-modal";
 import type { Horse } from "@shared/schema";
 
 interface HorseCardProps {
@@ -141,6 +142,13 @@ export default function HorseCard({ horse, stats, canEdit }: HorseCardProps) {
           </div>
         )}
       </CardContent>
+
+      {showEditModal && (
+        <EditHorseModal
+          horse={horse}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
     </Card>
   );
 }
