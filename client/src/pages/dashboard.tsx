@@ -146,11 +146,19 @@ export default function Dashboard() {
                 {(upcomingLessons || []).slice(0, 5).map((lesson: any) => (
                   <div key={lesson.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-semibold mr-3">
-                        {new Date(lesson.date).toLocaleTimeString("ru-RU", { 
-                          hour: "2-digit", 
-                          minute: "2-digit" 
-                        })}
+                      <div className="w-16 h-12 bg-primary text-white rounded-lg flex flex-col items-center justify-center text-xs font-semibold mr-3">
+                        <div className="text-[10px] opacity-80">
+                          {new Date(lesson.date).toLocaleDateString("ru-RU", { 
+                            day: "2-digit", 
+                            month: "2-digit" 
+                          })}
+                        </div>
+                        <div className="text-sm">
+                          {new Date(lesson.date).toLocaleTimeString("ru-RU", { 
+                            hour: "2-digit", 
+                            minute: "2-digit" 
+                          })}
+                        </div>
                       </div>
                       <div>
                         <p className="font-medium" data-testid={`lesson-client-${lesson.id}`}>
