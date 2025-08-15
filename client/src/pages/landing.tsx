@@ -16,15 +16,12 @@ import "../types/review-lab.d.ts";
 export default function LandingPage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [showNewsModal, setShowNewsModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [editingNews, setEditingNews] = useState<News | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   
   const [editableContent, setEditableContent] = useState(() => ContentStorage.getContent());
-  const [news, setNews] = useState<News[]>(() => ContentStorage.getNews());
   const [events, setEvents] = useState<Event[]>(() => ContentStorage.getEvents());
   const [services, setServices] = useState<Service[]>(() => ContentStorage.getServices());
 
@@ -34,10 +31,6 @@ export default function LandingPage() {
   }, [editableContent]);
 
   useEffect(() => {
-    ContentStorage.saveNews(news);
-  }, [news]);
-
-  useEffect(() => {
     ContentStorage.saveEvents(events);
   }, [events]);
 
@@ -45,12 +38,7 @@ export default function LandingPage() {
     ContentStorage.saveServices(services);
   }, [services]);
 
-  const [newsForm, setNewsForm] = useState({
-    title: "",
-    content: "",
-    imageUrl: "",
-    publishedAt: new Date().toISOString().split('T')[0]
-  });
+
 
   const [eventForm, setEventForm] = useState({
     title: "",
@@ -75,25 +63,6 @@ export default function LandingPage() {
     setIsEditing(false);
   };
 
-  const handleNewsSubmit = () => {
-    if (editingNews) {
-      setNews(prev => prev.map(n => n.id === editingNews.id ? 
-        { ...editingNews, ...newsForm, updatedAt: new Date().toISOString() } : n
-      ));
-    } else {
-      const newNews: News = {
-        ...newsForm,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setNews(prev => [newNews, ...prev]);
-    }
-    setShowNewsModal(false);
-    setEditingNews(null);
-    setNewsForm({ title: "", content: "", imageUrl: "", publishedAt: new Date().toISOString().split('T')[0] });
-  };
-
   const handleEventSubmit = () => {
     if (editingEvent) {
       setEvents(prev => prev.map(e => e.id === editingEvent.id ? 
@@ -114,17 +83,6 @@ export default function LandingPage() {
     setEventForm({ title: "", description: "", imageUrl: "", eventDate: "", location: "", maxParticipants: 0, isActive: true });
   };
 
-  const handleEditNews = (newsItem: News) => {
-    setEditingNews(newsItem);
-    setNewsForm({
-      title: newsItem.title,
-      content: newsItem.content,
-      imageUrl: newsItem.imageUrl || "",
-      publishedAt: newsItem.publishedAt
-    });
-    setShowNewsModal(true);
-  };
-
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
     setEventForm({
@@ -137,10 +95,6 @@ export default function LandingPage() {
       isActive: event.isActive
     });
     setShowEventModal(true);
-  };
-
-  const handleDeleteNews = (id: string) => {
-    setNews(prev => prev.filter(n => n.id !== id));
   };
 
   const handleDeleteEvent = (id: string) => {
@@ -413,96 +367,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* News Section */}
-      <section id="news" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-12">
-            <h3 className="text-3xl font-bold" data-testid="news-title">
-              Новости
-            </h3>
-            {canEdit && (
-              <Button 
-                onClick={() => setShowNewsModal(true)}
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                data-testid="button-add-news"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Добавить новость
-              </Button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {news.map((newsItem) => (
-              <Card key={newsItem.id} className="overflow-hidden">
-                {newsItem.imageUrl && (
-                  <img 
-                    src={newsItem.imageUrl} 
-                    alt={newsItem.title}
-                    className="w-full h-48 object-cover"
-                    data-testid={`news-image-${newsItem.id}`}
-                  />
-                )}
-                <CardContent className="p-6">
-                  <div className="flex items-center text-sm text-muted-foreground mb-2">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {new Date(newsItem.publishedAt).toLocaleDateString('ru-RU')}
-                  </div>
-                  <h4 className="text-xl font-semibold mb-3" data-testid={`news-title-${newsItem.id}`}>
-                    {newsItem.title}
-                  </h4>
-                  <p className="text-muted-foreground mb-4" data-testid={`news-content-${newsItem.id}`}>
-                    {newsItem.content.length > 100 ? `${newsItem.content.substring(0, 100)}...` : newsItem.content}
-                  </p>
-                  {canEdit && (
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleEditNews(newsItem)}
-                        data-testid={`button-edit-news-${newsItem.id}`}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Изменить
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleDeleteNews(newsItem.id)}
-                        data-testid={`button-delete-news-${newsItem.id}`}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Удалить
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Reviews Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4" data-testid="reviews-title">
-              Отзывы наших клиентов
-            </h3>
-            <p className="text-muted-foreground" data-testid="reviews-subtitle">
-              Узнайте, что говорят о нас наши ученики и их родители
-            </p>
-          </div>
-          
-          {/* ReviewLab Widget */}
-          <div className="max-w-4xl mx-auto">
-            <review-lab data-widgetid="689f02e05878d3b77a65f707"></review-lab>
-          </div>
-        </div>
-      </section>
-
       {/* Events Section */}
-      <section id="events" className="py-16 bg-gray-50">
+      <section id="events" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-12">
             {isEditing ? (
@@ -663,75 +529,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* News Modal */}
-      <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingNews ? "Редактировать новость" : "Добавить новость"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="news-title">Заголовок</Label>
-              <Input
-                id="news-title"
-                value={newsForm.title}
-                onChange={(e) => setNewsForm(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Введите заголовок новости"
-                data-testid="input-news-title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="news-content">Содержание</Label>
-              <Textarea
-                id="news-content"
-                value={newsForm.content}
-                onChange={(e) => setNewsForm(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Введите содержание новости"
-                rows={4}
-                data-testid="textarea-news-content"
-              />
-            </div>
-            <div>
-              <Label htmlFor="news-image">URL изображения (опционально)</Label>
-              <Input
-                id="news-image"
-                value={newsForm.imageUrl}
-                onChange={(e) => setNewsForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-                data-testid="input-news-image"
-              />
-            </div>
-            <div>
-              <Label htmlFor="news-date">Дата публикации</Label>
-              <Input
-                id="news-date"
-                type="date"
-                value={newsForm.publishedAt}
-                onChange={(e) => setNewsForm(prev => ({ ...prev, publishedAt: e.target.value }))}
-                data-testid="input-news-date"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setShowNewsModal(false)}
-                data-testid="button-cancel-news"
-              >
-                Отмена
-              </Button>
-              <Button
-                onClick={handleNewsSubmit}
-                disabled={!newsForm.title || !newsForm.content}
-                data-testid="button-save-news"
-              >
-                {editingNews ? "Сохранить" : "Добавить"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Event Modal */}
       <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
