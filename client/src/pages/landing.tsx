@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { VKLoginButton } from "@/components/vk-login-button";
 import { useAuth } from "@/hooks/use-auth";
 import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X, Plus, Trash2, Edit } from "lucide-react";
 import type { News, Event, Service } from "@shared/content-schema";
+import { ContentStorage } from "@/lib/content-storage";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -21,97 +22,27 @@ export default function LandingPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   
-  const [editableContent, setEditableContent] = useState({
-    siteTitle: "Конюшня \"Солнечная Поляна\"",
-    heroTitle: "Добро пожаловать в нашу конюшню",
-    heroDescription: "Профессиональные занятия верховой ездой, иппотерапия и незабываемые прогулки с лошадьми в живописной природе",
-    servicesTitle: "Наши услуги",
-    service1Title: "Обучение верховой езде",
-    service1Description: "Занятия для новичков и опытных всадников с профессиональными инструкторами",
-    service2Title: "Иппотерапия",
-    service2Description: "Лечебная верховая езда для реабилитации и улучшения самочувствия",
-    service3Title: "Конная стрельба из лука",
-    service3Description: "Уникальные занятия по стрельбе из лука верхом на лошади",
-    eventsTitle: "Предстоящие мероприятия"
-  });
+  const [editableContent, setEditableContent] = useState(() => ContentStorage.getContent());
+  const [news, setNews] = useState<News[]>(() => ContentStorage.getNews());
+  const [events, setEvents] = useState<Event[]>(() => ContentStorage.getEvents());
+  const [services, setServices] = useState<Service[]>(() => ContentStorage.getServices());
 
-  // Mock data - in real app this would come from API
-  const [news, setNews] = useState<News[]>([
-    {
-      id: "1",
-      title: "Новые тренировки по конкуру",
-      content: "Мы рады сообщить о запуске новой программы тренировок по конкуру для продвинутых всадников.",
-      imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      publishedAt: "2024-12-25",
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    }
-  ]);
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    ContentStorage.saveContent(editableContent);
+  }, [editableContent]);
 
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1", 
-      title: "Соревнования по конкуру",
-      description: "Ежегодные соревнования среди всадников всех уровней подготовки",
-      imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
-      eventDate: "2024-01-15",
-      location: "Главная арена",
-      maxParticipants: 50,
-      registeredParticipants: 23,
-      isActive: true,
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    },
-    {
-      id: "2",
-      title: "Мастер-класс по иппотерапии",
-      description: "Профессиональный мастер-класс от ведущих специалистов",
-      imageUrl: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=600",
-      eventDate: "2024-01-22",
-      location: "Терапевтическая зона",
-      maxParticipants: 15,
-      registeredParticipants: 8,
-      isActive: true,
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    }
-  ]);
+  useEffect(() => {
+    ContentStorage.saveNews(news);
+  }, [news]);
 
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: "1",
-      title: "Обучение верховой езде",
-      description: "Занятия для новичков и опытных всадников с профессиональными инструкторами",
-      price: "от 2000₽",
-      duration: "45 мин",
-      isActive: true,
-      order: 1,
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    },
-    {
-      id: "2",
-      title: "Иппотерапия",
-      description: "Лечебная верховая езда для реабилитации и улучшения самочувствия",
-      price: "от 2500₽",
-      duration: "60 мин",
-      isActive: true,
-      order: 2,
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    },
-    {
-      id: "3",
-      title: "Конная стрельба из лука",
-      description: "Уникальные занятия по стрельбе из лука верхом на лошади",
-      price: "от 3000₽",
-      duration: "90 мин",
-      isActive: true,
-      order: 3,
-      createdAt: "2024-12-25T10:00:00Z",
-      updatedAt: "2024-12-25T10:00:00Z"
-    }
-  ]);
+  useEffect(() => {
+    ContentStorage.saveEvents(events);
+  }, [events]);
+
+  useEffect(() => {
+    ContentStorage.saveServices(services);
+  }, [services]);
 
   const [newsForm, setNewsForm] = useState({
     title: "",
