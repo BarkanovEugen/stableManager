@@ -468,6 +468,25 @@ export default function LandingPage() {
 
 
 
+      {/* Reviews Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold mb-4" data-testid="reviews-title">
+              Отзывы наших клиентов
+            </h3>
+            <p className="text-muted-foreground" data-testid="reviews-subtitle">
+              Узнайте, что говорят о нас наши ученики и их родители
+            </p>
+          </div>
+          
+          {/* ReviewLab Widget */}
+          <div className="max-w-4xl mx-auto">
+            <review-lab data-widgetid="689f02e05878d3b77a65f707"></review-lab>
+          </div>
+        </div>
+      </section>
+
       {/* Social Media & Contact */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
