@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Rabbit as HorseIcon, Edit, Trash2 } from "lucide-react";
 import EditHorseModal from "./edit-horse-modal";
+import DeleteHorseModal from "./delete-horse-modal";
 import type { Horse } from "@shared/schema";
 
 interface HorseCardProps {
@@ -18,24 +18,10 @@ interface HorseCardProps {
 
 export default function HorseCard({ horse, stats, canEdit }: HorseCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/horses/${horse.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete horse");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/horses"] });
-    },
-  });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleDelete = () => {
-    if (confirm(`Вы уверены, что хотите удалить лошадь "${horse.nickname}"?`)) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteModal(true);
   };
 
   const getStatusBadge = () => {
@@ -147,6 +133,13 @@ export default function HorseCard({ horse, stats, canEdit }: HorseCardProps) {
         <EditHorseModal
           horse={horse}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteHorseModal
+          horse={horse}
+          onClose={() => setShowDeleteModal(false)}
         />
       )}
     </Card>

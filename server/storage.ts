@@ -135,7 +135,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteHorse(id: string): Promise<void> {
-    await db.delete(horses).where(eq(horses.id, id));
+    await db.transaction(async (tx) => {
+      // Update lessons where this horse is assigned
+      // For completed lessons - keep the horse for statistics
+      // For non-completed lessons - remove the horse assignment
+      await tx.delete(lessonHorses)
+        .where(
+          and(
+            eq(lessonHorses.horseId, id),
+            // Only update non-completed lessons
+            sql`EXISTS (
+              SELECT 1 FROM ${lessons} 
+              WHERE ${lessons.id} = ${lessonHorses.lessonId} 
+              AND ${lessons.status} != 'completed'
+            )`
+          )
+        );
+
+      // Delete the horse
+      await tx.delete(horses).where(eq(horses.id, id));
+    });
   }
 
   // Instructors
