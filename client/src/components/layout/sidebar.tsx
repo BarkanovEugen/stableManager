@@ -15,7 +15,8 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Globe
 } from "lucide-react";
 
 const navigationItems = [
@@ -136,16 +137,29 @@ export default function Sidebar() {
               </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="w-full justify-start text-muted-foreground hover:text-gray-700"
-            data-testid="button-logout"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Выйти
-          </Button>
+          <div className="space-y-2">
+            <Link href="/" className="block">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted-foreground hover:text-gray-700"
+                data-testid="button-go-to-site"
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Перейти на сайт
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full justify-start text-muted-foreground hover:text-gray-700"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Выйти
+            </Button>
+          </div>
         </div>
       </div>
     </>

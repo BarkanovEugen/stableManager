@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { VKLoginButton } from "@/components/vk-login-button";
-import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings } from "lucide-react";
 
 export default function LandingPage() {
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background" data-testid="landing-page">
@@ -25,7 +28,21 @@ export default function LandingPage() {
               <a href="#news" className="text-muted hover:text-primary transition-colors" data-testid="link-news">
                 Новости
               </a>
-              <VKLoginButton />
+              {user ? (
+                <Link href="/dashboard">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    className="bg-primary text-white hover:bg-blue-700"
+                    data-testid="button-admin-panel"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Панель управления
+                  </Button>
+                </Link>
+              ) : (
+                <VKLoginButton />
+              )}
             </div>
           </div>
         </div>
