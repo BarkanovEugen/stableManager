@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
@@ -29,10 +29,12 @@ RUN adduser -S appuser -u 1001
 # Set working directory
 WORKDIR /app
 
+# Copy package files first and install production dependencies
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
 # Copy built application from builder stage
 COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:nodejs /app/package*.json ./
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown appuser:nodejs /app/logs
