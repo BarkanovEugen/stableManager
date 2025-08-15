@@ -34,7 +34,7 @@ export default function Dashboard() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: upcomingLessons } = useQuery({
+  const { data: upcomingLessonsRaw } = useQuery({
     queryKey: ["/api/lessons", "upcoming"],
     queryFn: () => {
       const today = new Date();
@@ -44,6 +44,11 @@ export default function Dashboard() {
     refetchInterval: 15000, // Refresh every 15 seconds for upcoming lessons
     refetchOnWindowFocus: true,
   });
+
+  // Sort upcoming lessons by date/time (nearest first)
+  const upcomingLessons = upcomingLessonsRaw ? 
+    [...upcomingLessonsRaw].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) : 
+    [];
 
   const todayLessons = Array.isArray(lessons) ? lessons.filter((lesson: any) => {
     const lessonDate = new Date(lesson.date).toDateString();
