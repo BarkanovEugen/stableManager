@@ -67,16 +67,20 @@ check_root() {
 parse_args() {
     if [ -z "$1" ]; then
         print_error "Домен не указан!"
-        echo "Usage: $0 your-domain.com [your-email@domain.com]"
-        echo "Example: $0 stable.example.com admin@example.com"
+        echo "Usage: $0 your-domain.com [your-email@domain.com] [vk-id]"
+        echo "Example: $0 stable.example.com admin@example.com 123456789"
         exit 1
     fi
     
     DOMAIN="$1"
     EMAIL="${2:-admin@$DOMAIN}"
+    ADMIN_VK_ID="$3"
     
     print_info "Домен: $DOMAIN"
     print_info "Email: $EMAIL"
+    if [ -n "$ADMIN_VK_ID" ]; then
+        print_info "VK ID: $ADMIN_VK_ID"
+    fi
 }
 
 # Gather user input
@@ -85,7 +89,7 @@ gather_input() {
     
     # VK ID Admin
     while [ -z "$ADMIN_VK_ID" ]; do
-        read -p "Введите ваш VK ID (числовой ID для администратора): " ADMIN_VK_ID
+        read -p "Введите ваш VK ID (числовой ID для администратора): " ADMIN_VK_ID < /dev/tty
         if [[ ! "$ADMIN_VK_ID" =~ ^[0-9]+$ ]]; then
             print_warning "VK ID должен быть числом"
             ADMIN_VK_ID=""
@@ -96,7 +100,7 @@ gather_input() {
     echo ""
     echo -e "${YELLOW}📂 Настройка репозитория${NC}"
     echo "По умолчанию: $REPO_URL"
-    read -p "GitHub репозиторий (или Enter для продолжения): " CUSTOM_REPO
+    read -p "GitHub репозиторий (или Enter для продолжения): " CUSTOM_REPO < /dev/tty
     if [ -n "$CUSTOM_REPO" ]; then
         REPO_URL="$CUSTOM_REPO"
     fi
@@ -109,7 +113,7 @@ gather_input() {
     echo "  Репозиторий: $REPO_URL"
     echo "  Директория: $PROJECT_DIR"
     
-    read -p $'\nПродолжить установку? (y/N): ' -n 1 -r
+    read -p $'\nПродолжить установку? (y/N): ' -n 1 -r < /dev/tty
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         print_info "Установка отменена пользователем."
