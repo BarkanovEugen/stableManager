@@ -1,0 +1,66 @@
+oot@cv5135802:~# cd /opt/stable-crm
+root@cv5135802:/opt/stable-crm# docker-compose down -v
+WARN[0000] /opt/stable-crm/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 3/3
+ ✔ Container stable-crm-db                Removed                                                                 0.1s 
+ ✔ Volume stable-crm_postgres_data        Removed                                                                 0.1s 
+ ✔ Network stable-crm_stable-crm-network  Removed                                                                 0.1s 
+root@cv5135802:/opt/stable-crm# cat > .env << 'EOF'
+NODE_ENV=production
+PORT=3000
+# Database Configuration
+POSTGRES_DB=stable_crm
+POSTGRES_USER=stable_user
+POSTGRES_PASSWORD=your_secure_db_password_here
+DATABASE_URL=postgresql://stable_user:your_secure_db_password_here@172.18.0.2:5432/stable_crm
+# Session Security
+SESSION_SECRET=MXYNATF93jv+H7ryAn24l2F9N4MJvBty+h+RLyn8yXJYOFjBVMXbtNnZfb1jy1y4
+# VK ID Configuration
+VK_APP_ID=54045385
+ADMIN_VK_ID=213430885
+# Server Configuration
+DOMAIN=orehovyam.ru
+EMAIL=barkanov.eugen@gmail.com
+EOF
+root@cv5135802:/opt/stable-crm# docker-compose up -d postgres
+WARN[0000] /opt/stable-crm/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 3/3
+ ✔ Network stable-crm_stable-crm-network  Created                                                                 0.0s 
+ ✔ Volume "stable-crm_postgres_data"      Created                                                                 0.0s 
+ ✔ Container stable-crm-db                Started                                                                 0.2s 
+root@cv5135802:/opt/stable-crm# sleep 30
+root@cv5135802:/opt/stable-crm# POSTGRES_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' stable-crm-db)
+echo "New PostgreSQL IP: $POSTGRES_IP"
+New PostgreSQL IP: 172.18.0.2
+root@cv5135802:/opt/stable-crm# sed -i "s/172.18.0.2/$POSTGRES_IP/g" .env
+root@cv5135802:/opt/stable-crm# docker-compose exec postgres pg_isready -U stable_user -d stable_crm
+WARN[0000] /opt/stable-crm/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+/var/run/postgresql:5432 - accepting connections
+root@cv5135802:/opt/stable-crm# npm run db:push
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/opt/stable-crm/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+[✓] Changes applied
+root@cv5135802:/opt/stable-crm# NODE_ENV=production npm start
+
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+
+file:///opt/stable-crm/dist/index.js:275
+  throw new Error(
+        ^
+
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+    at file:///opt/stable-crm/dist/index.js:275:9
+    at ModuleJob.run (node:internal/modules/esm/module_job:195:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:337:24)
+    at async loadESM (node:internal/process/esm_loader:34:7)
+    at async handleMainPromise (node:internal/modules/run_main:106:12)
+
+Node.js v18.20.8
+root@cv5135802:/opt/stable-crm# 
