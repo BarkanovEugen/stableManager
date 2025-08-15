@@ -31,13 +31,15 @@ const navigationItems = [
 ];
 
 export default function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
       await logout();
+      // Redirect to landing page after successful logout
+      setLocation("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
