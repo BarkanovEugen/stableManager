@@ -264,21 +264,13 @@ export default function LandingPage() {
               </p>
             </>
           )}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button 
               size="lg" 
               className="bg-primary text-white hover:bg-blue-700"
               data-testid="button-book-lesson"
             >
               Записаться на занятие
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="bg-white text-primary hover:bg-gray-100"
-              data-testid="button-learn-more"
-            >
-              Узнать больше
             </Button>
           </div>
         </div>
