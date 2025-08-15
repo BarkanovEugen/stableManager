@@ -1,4 +1,4 @@
-# Развертывание на VPS сервере
+# Docker Развертывание на VPS сервере
 
 ## Предварительные требования
 
@@ -9,10 +9,11 @@
 
 ### 2. Серверные требования
 - Ubuntu 20.04+ / CentOS 8+ / Debian 11+
-- Node.js 18+ 
-- PostgreSQL 13+
-- Nginx (рекомендуется)
+- Docker 20.10+
+- Docker Compose 2.0+
+- Git
 - SSL сертификат (обязательно для VK ID)
+- Минимум 2GB RAM и 20GB дискового пространства
 
 ## Пошаговая инструкция
 
@@ -22,58 +23,55 @@
 # Обновляем систему
 sudo apt update && sudo apt upgrade -y
 
-# Устанавливаем Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# Устанавливаем Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo systemctl enable docker
+sudo systemctl start docker
 
-# Устанавливаем PostgreSQL
-sudo apt-get install -y postgresql postgresql-contrib
+# Устанавливаем Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-# Устанавливаем Nginx
-sudo apt-get install -y nginx
+# Устанавливаем Git
+sudo apt-get install -y git
 
-# Устанавливаем PM2 для управления процессами
-sudo npm install -g pm2
+# Добавляем пользователя в группу docker (опционально)
+sudo usermod -aG docker $USER
 ```
 
-### 2. Настройка PostgreSQL
+### 2. Клонирование проекта
 
 ```bash
-# Входим в PostgreSQL
-sudo -u postgres psql
+# Создаем директорию для проекта
+sudo mkdir -p /opt/stable-crm
+sudo chown $USER:$USER /opt/stable-crm
 
-# Создаем базу данных и пользователя
-CREATE DATABASE stable_crm;
-CREATE USER stable_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE stable_crm TO stable_user;
-\q
-```
-
-### 3. Клонирование и настройка проекта
-
-```bash
 # Клонируем проект
-git clone <your-repo-url> /var/www/stable-crm
-cd /var/www/stable-crm
+git clone <your-repo-url> /opt/stable-crm
+cd /opt/stable-crm
 
-# Устанавливаем зависимости
-npm install
-
-# Создаем файл .env
+# Создаем файл .env из примера
 cp .env.example .env
+
+# Создаем директории для данных
+mkdir -p ssl logs backups
 ```
 
-### 4. Настройка переменных окружения (.env)
+### 3. Настройка переменных окружения (.env)
 
 ```env
 NODE_ENV=production
 PORT=3000
 
-# Database
-DATABASE_URL=postgresql://stable_user:your_secure_password@localhost:5432/stable_crm
+# Database (Docker Compose автоматически настроит сеть)
+POSTGRES_DB=stable_crm
+POSTGRES_USER=stable_user
+POSTGRES_PASSWORD=your_secure_db_password_here
+DATABASE_URL=postgresql://stable_user:your_secure_db_password_here@postgres:5432/stable_crm
 
-# Session
-SESSION_SECRET=your_very_secure_session_secret_here_min_32_chars
+# Session Security
+SESSION_SECRET=your_very_secure_session_secret_minimum_32_characters_long
 
 # VK ID Configuration
 VK_APP_ID=54045385
@@ -85,101 +83,55 @@ PUBLIC_OBJECT_SEARCH_PATHS=public/
 PRIVATE_OBJECT_DIR=private/
 ```
 
-### 5. Миграция базы данных
+### 4. Загрузка SSL сертификатов
 
 ```bash
-# Применяем миграции
-npm run db:push
+# Загрузите ваши SSL сертификаты в директорию ssl/
+# Используйте скрипт для автоматической загрузки:
+./scripts/setup-ssl.sh
+
+# Или вручную:
+# scp your-certificate.crt user@server:/opt/stable-crm/ssl/
+# scp your-private.key user@server:/opt/stable-crm/ssl/
 ```
 
-### 6. Сборка проекта
+### 5. Обновите конфигурацию Nginx
 
 ```bash
-# Собираем проект
-npm run build
+# Отредактируйте nginx/default.conf
+nano nginx/default.conf
+
+# Замените 'your-domain.com' на ваш реальный домен
+sed -i 's/your-domain.com/yourdomain.com/g' nginx/default.conf
 ```
 
-### 7. Настройка PM2
-
-Создайте файл `ecosystem.config.js`:
-
-```javascript
-module.exports = {
-  apps: [{
-    name: 'stable-crm',
-    script: './dist/index.js',
-    instances: 1,
-    exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
-    },
-    error_file: '/var/log/pm2/stable-crm-error.log',
-    out_file: '/var/log/pm2/stable-crm-out.log',
-    log_file: '/var/log/pm2/stable-crm.log',
-    time: true
-  }]
-}
-```
-
-Запуск:
-```bash
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
-```
-
-### 8. Настройка Nginx
-
-Создайте файл `/etc/nginx/sites-available/stable-crm`:
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com www.your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com www.your-domain.com;
-
-    ssl_certificate /path/to/your/certificate.crt;
-    ssl_certificate_key /path/to/your/private.key;
-    
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    client_max_body_size 10M;
-}
-```
-
-Активируйте конфигурацию:
-```bash
-sudo ln -s /etc/nginx/sites-available/stable-crm /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### 9. SSL сертификат с Let's Encrypt
+### 6. Первый запуск
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+# Запустите все сервисы
+docker-compose up -d
+
+# Проверьте статус
+docker-compose ps
+
+# Примените миграции базы данных
+docker-compose run --rm app npm run db:push
+```
+
+### 7. Проверка развертывания
+
+```bash
+# Проверьте все сервисы
+docker-compose ps
+
+# Проверьте логи приложения
+docker-compose logs app
+
+# Проверьте работу приложения
+curl -f http://localhost:3000/api/auth/me
+
+# Проверьте HTTPS (после настройки SSL)
+curl -I https://your-domain.com
 ```
 
 ## Настройка VK ID для продакшена
@@ -192,40 +144,101 @@ sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 ### 2. Обновите клиентский код (если нужно)
 VK ID автоматически определит домен из `window.location.origin`, но убедитесь, что в продакшене используется правильный домен.
 
+## 🔄 Система безопасных обновлений
+
+### Автоматический скрипт обновления с сохранением данных
+
+Создан скрипт `scripts/update-server.sh` для безопасного обновления без потери данных:
+
+```bash
+# Запуск обновления
+./scripts/update-server.sh
+
+# Откат к предыдущей версии (если что-то пошло не так)
+./scripts/update-server.sh rollback
+```
+
+### Что делает скрипт обновления:
+
+1. **Создает резервную копию БД** перед обновлением
+2. **Сохраняет текущий Docker образ** для возможности отката
+3. **Загружает обновления с Git** без влияния на данные
+4. **Пересобирает только код приложения**, оставляя БД нетронутой
+5. **Применяет миграции БД** если есть изменения схемы
+6. **Проверяет работоспособность** после обновления
+7. **Автоматически откатывается** при ошибках
+
+### Ручное обновление:
+
+```bash
+# Перейдите в директорию проекта
+cd /opt/stable-crm
+
+# Создайте бэкап БД
+docker-compose exec postgres pg_dump -U stable_user stable_crm > backups/backup_before_update_$(date +%Y%m%d_%H%M%S).sql
+
+# Загрузите изменения с Git
+git pull origin main
+
+# Пересоберите только приложение (БД остается нетронутой)
+docker-compose build --no-cache app
+
+# Примените миграции БД (если есть)
+docker-compose run --rm app npm run db:push
+
+# Перезапустите приложение
+docker-compose up -d
+
+# Проверьте работоспособность
+docker-compose logs app
+curl -f http://localhost:3000/api/auth/me
+```
+
 ## Мониторинг и логи
 
 ```bash
-# Просмотр логов PM2
-pm2 logs stable-crm
+# Просмотр логов приложения
+docker-compose logs -f app
 
-# Мониторинг процессов
-pm2 monit
+# Просмотр логов Nginx
+docker-compose logs -f nginx
 
-# Перезапуск приложения
-pm2 restart stable-crm
+# Просмотр логов БД
+docker-compose logs -f postgres
 
-# Просмотр статуса
-pm2 status
+# Статус всех контейнеров
+docker-compose ps
+
+# Использование ресурсов
+docker stats
 ```
 
-## Обслуживание базы данных
+## Автоматические бэкапы базы данных
 
-Рекомендуется настроить автоматические бэкапы:
+### Настройка регулярных бэкапов:
 
 ```bash
-# Создайте скрипт backup.sh
+# Создайте скрипт для автоматических бэкапов
+cat > /opt/stable-crm/scripts/auto-backup.sh << 'EOF'
 #!/bin/bash
-pg_dump -U stable_user -h localhost stable_crm | gzip > /var/backups/stable_crm_$(date +%Y%m%d_%H%M%S).sql.gz
+cd /opt/stable-crm
+docker-compose exec -T postgres pg_dump -U stable_user stable_crm | gzip > backups/auto_backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
-# Оставляем только последние 7 бэкапов
-find /var/backups -name "stable_crm_*.sql.gz" -mtime +7 -delete
+# Удаляем старые бэкапы (старше 14 дней)
+find backups/ -name "auto_backup_*.sql.gz" -mtime +14 -delete
+
+# Логирование
+echo "$(date): Automatic backup completed" >> logs/backup.log
+EOF
+
+chmod +x /opt/stable-crm/scripts/auto-backup.sh
 ```
 
-Добавьте в crontab:
+### Добавьте в crontab:
 ```bash
 crontab -e
 # Добавьте строку для ежедневного бэкапа в 2:00
-0 2 * * * /path/to/backup.sh
+0 2 * * * /opt/stable-crm/scripts/auto-backup.sh
 ```
 
 ## Безопасность
@@ -244,17 +257,65 @@ crontab -e
 - Проверьте, что скрипт VK ID загружается корректно
 
 ### Проблемы с базой данных
-- Проверьте строку подключения DATABASE_URL
-- Убедитесь, что PostgreSQL запущен: `sudo systemctl status postgresql`
-- Проверьте права пользователя БД
+- Проверьте строку подключения DATABASE_URL в .env
+- Убедитесь, что PostgreSQL контейнер запущен: `docker-compose ps`
+- Проверьте логи БД: `docker-compose logs postgres`
+- Проверьте подключение: `docker-compose exec postgres pg_isready -U stable_user`
 
 ### Ошибки сессий
-- Убедитесь, что SESSION_SECRET установлен и достаточно длинный
-- Проверьте настройки cookies (secure: true для HTTPS)
+- Убедитесь, что SESSION_SECRET установлен и достаточно длинный (минимум 32 символа)
+- Проверьте настройки cookies в server/index.ts (secure: true для HTTPS)
+- Перезапустите приложение: `docker-compose restart app`
 
-## Тестирование VK интеграции
+## Тестирование после развертывания
 
-1. Откройте сайт в браузере
+### Базовая функциональность:
+```bash
+# Проверьте статус всех сервисов
+docker-compose ps
+
+# Проверьте работу приложения
+curl -f http://localhost:3000/api/auth/me
+
+# Проверьте HTTPS
+curl -I https://your-domain.com
+
+# Проверьте базу данных
+docker-compose exec postgres psql -U stable_user -d stable_crm -c "\dt"
+```
+
+### Тестирование VK интеграции:
+1. Откройте сайт в браузере по HTTPS
 2. Попробуйте авторизоваться через VK ID
 3. Проверьте, что сессия сохраняется после перезагрузки страницы
 4. Убедитесь, что роли пользователей работают корректно
+5. Проверьте сохранение данных (создайте тестовую новость или мероприятие)
+
+### Тестирование безопасного обновления:
+```bash
+# Протестируйте систему обновлений
+./scripts/update-server.sh
+
+# В случае проблем - откатитесь
+./scripts/update-server.sh rollback
+```
+
+## 📊 Мониторинг и метрики
+
+### Основные команды для мониторинга:
+```bash
+# Использование ресурсов контейнерами
+docker stats
+
+# Размер базы данных
+docker-compose exec postgres psql -U stable_user -d stable_crm -c "SELECT pg_database_size('stable_crm');"
+
+# Свободное место на диске
+df -h
+
+# Логи в реальном времени
+docker-compose logs -f app
+
+# Количество подключенных пользователей (примерный)
+docker-compose exec postgres psql -U stable_user -d stable_crm -c "SELECT count(*) FROM sessions;"
+```
