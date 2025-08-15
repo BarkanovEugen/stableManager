@@ -133,7 +133,7 @@ export default function LessonCompletionModal({ lessonId, onClose }: LessonCompl
             <Checkbox
               id="isPaid"
               checked={isPaid}
-              onCheckedChange={setIsPaid}
+              onCheckedChange={(checked) => setIsPaid(checked === true)}
               data-testid="checkbox-is-paid"
             />
             <Label htmlFor="isPaid">Занятие оплачено</Label>

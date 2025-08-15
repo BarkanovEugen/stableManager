@@ -456,8 +456,38 @@ export class DatabaseStorage implements IStorage {
   async updateLesson(id: string, lesson: Partial<InsertLesson>): Promise<LessonWithRelations> {
     const { instructorIds, horseIds, ...lessonData } = lesson;
     
+    // Get current lesson data to check for changes
+    const currentLesson = await this.getLesson(id);
+    if (!currentLesson) {
+      throw new Error("Lesson not found");
+    }
+    
     // Update lesson
     await db.update(lessons).set(lessonData).where(eq(lessons.id, id));
+    
+    // Handle subscription deduction if lesson is completed with subscription payment
+    if (
+      lesson.status === "completed" && 
+      lesson.paymentType === "subscription" &&
+      currentLesson.status !== "completed"
+    ) {
+      // Find active subscription for the client
+      const activeSubscription = await this.getActiveSubscription(currentLesson.clientId);
+      
+      if (activeSubscription && activeSubscription.lessonsRemaining > 0) {
+        const newLessonsRemaining = activeSubscription.lessonsRemaining - 1;
+        const newStatus = newLessonsRemaining === 0 ? "used" : "active";
+        
+        // Update subscription
+        await db.update(subscriptions)
+          .set({ 
+            lessonsRemaining: newLessonsRemaining,
+            status: newStatus,
+            ...(newStatus === "used" && { usedAt: new Date() })
+          })
+          .where(eq(subscriptions.id, activeSubscription.id));
+      }
+    }
     
     // Update instructor associations if provided
     if (instructorIds !== undefined) {
