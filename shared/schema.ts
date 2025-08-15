@@ -248,6 +248,8 @@ export const insertLessonSchema = createInsertSchema(lessons).omit({
 }).extend({
   instructorIds: z.array(z.string()).min(1),
   horseIds: z.array(z.string()).min(1),
+  date: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
+  cost: z.union([z.string(), z.number()]).transform(val => typeof val === 'number' ? val.toString() : val),
 });
 
 export const insertLandingContentSchema = createInsertSchema(landingContent).omit({

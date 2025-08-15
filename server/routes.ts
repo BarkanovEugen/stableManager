@@ -274,7 +274,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/lessons/:id", requireAuth, requireRole(["instructor", "administrator"]), async (req, res) => {
     try {
-      const data = insertLessonSchema.partial().parse(req.body);
+      // Transform the data to match schema requirements
+      const transformedData = {
+        ...req.body,
+        ...(req.body.date && { date: new Date(req.body.date) }), // Convert string to Date if present
+        ...(req.body.cost !== undefined && { cost: req.body.cost.toString() }), // Convert number to string if present
+      };
+      
+      const data = insertLessonSchema.partial().parse(transformedData);
       const lesson = await storage.updateLesson(req.params.id, data);
       res.json(lesson);
     } catch (error) {
