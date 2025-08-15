@@ -325,35 +325,28 @@ export default function LandingPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2 justify-center">
-                    {!canEdit && (
-                      <Button variant="outline" size="sm" data-testid={`button-service-details-${service.id}`}>
-                        Подробнее
+                  {canEdit && (
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditService(service)}
+                        data-testid={`button-edit-service-${service.id}`}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Изменить
                       </Button>
-                    )}
-                    {canEdit && (
-                      <>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleEditService(service)}
-                          data-testid={`button-edit-service-${service.id}`}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Изменить
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => handleDeleteService(service.id)}
-                          data-testid={`button-delete-service-${service.id}`}
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Удалить
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDeleteService(service.id)}
+                        data-testid={`button-delete-service-${service.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Удалить
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
