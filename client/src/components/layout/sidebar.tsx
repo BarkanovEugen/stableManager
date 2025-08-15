@@ -38,8 +38,8 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-      // Redirect to landing page after successful logout
-      setLocation("/");
+      // Force redirect to landing page after successful logout
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
     }

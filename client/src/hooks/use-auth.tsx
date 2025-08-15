@@ -26,7 +26,9 @@ export function useAuth() {
       await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Clear user data instead of invalidating to prevent loop
+      queryClient.setQueryData(["/api/auth/me"], null);
+      queryClient.clear(); // Clear all cached data
     },
   });
 
