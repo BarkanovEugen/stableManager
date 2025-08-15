@@ -188,7 +188,7 @@ setup_project() {
     # Remove existing directory if exists
     if [ -d "$PROJECT_DIR" ]; then
         print_warning "Директория $PROJECT_DIR уже существует"
-        read -p "Удалить и пересоздать? (y/N): " -n 1 -r
+        read -p "Удалить и пересоздать? (y/N): " -n 1 -r < /dev/tty
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             sudo rm -rf "$PROJECT_DIR"
@@ -198,13 +198,20 @@ setup_project() {
         fi
     fi
     
-    # Create directory
+    # Create directory and clone
     sudo mkdir -p "$PROJECT_DIR"
     sudo chown $USER:$USER "$PROJECT_DIR"
     
     # Clone repository
-    git clone "$REPO_URL" "$PROJECT_DIR"
-    cd "$PROJECT_DIR"
+    if git clone "$REPO_URL" "$PROJECT_DIR"; then
+        print_success "Репозиторий склонирован"
+    else
+        print_error "Не удалось склонировать репозиторий"
+        exit 1
+    fi
+    
+    # Change to project directory
+    cd "$PROJECT_DIR" || exit 1
     
     # Create necessary directories
     mkdir -p logs backups ssl certbot/www
