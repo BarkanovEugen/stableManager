@@ -265,13 +265,15 @@ export default function LandingPage() {
             </>
           )}
           <div className="flex justify-center">
-            <Button 
-              size="lg" 
-              className="bg-primary text-white hover:bg-blue-700"
-              data-testid="button-book-lesson"
-            >
-              Записаться на занятие
-            </Button>
+            <a href="https://vk.com/uslugi-197401124" target="_blank" rel="noopener noreferrer">
+              <Button 
+                size="lg" 
+                className="bg-primary text-white hover:bg-blue-700"
+                data-testid="button-book-lesson"
+              >
+                Записаться на занятие
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -412,14 +414,16 @@ export default function LandingPage() {
                   {event.maxParticipants && (
                     <div className="flex items-center text-sm text-muted-foreground mb-4">
                       <Users className="w-4 h-4 mr-1" />
-                      {event.registeredParticipants}/{event.maxParticipants} участников
+                      до {event.maxParticipants} участников
                     </div>
                   )}
                   <div className="flex gap-2">
                     {!canEdit && (
-                      <Button size="sm" className="flex-1" data-testid={`button-register-event-${event.id}`}>
-                        Зарегистрироваться
-                      </Button>
+                      <a href="https://vk.com/uslugi-197401124" target="_blank" rel="noopener noreferrer" className="flex-1">
+                        <Button size="sm" className="w-full" data-testid={`button-register-event-${event.id}`}>
+                          Зарегистрироваться
+                        </Button>
+                      </a>
                     )}
                     {canEdit && (
                       <>
