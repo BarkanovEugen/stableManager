@@ -116,3 +116,42 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .calendar-grid {
+    gap: 0.5px;
+    font-size: 0.75rem;
+  }
+  
+  .calendar-cell {
+    min-height: 45px;
+    padding: 2px;
+  }
+  
+  .calendar-cell .font-medium {
+    font-size: 0.7rem;
+    margin-bottom: 0.125rem;
+  }
+  
+  .lesson-indicator {
+    height: 10px;
+    font-size: 7px;
+    padding: 0px 1px;
+    margin-bottom: 0.5px;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-cell {
+    min-height: 35px;
+    padding: 1px;
+  }
+  
+  .lesson-indicator {
+    height: 8px;
+    font-size: 6px;
+    padding: 0px;
+  }
+}

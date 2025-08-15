@@ -74,7 +74,7 @@ export default function LessonCalendar({ lessons, currentMonth }: LessonCalendar
     <div className="calendar-grid" data-testid="lesson-calendar">
       {/* Header */}
       {weekDays.map(day => (
-        <div key={day} className="calendar-cell bg-gray-50 font-semibold text-center py-2 min-h-[40px]">
+        <div key={day} className="calendar-cell bg-gray-50 font-semibold text-center py-1 sm:py-2 min-h-[30px] sm:min-h-[40px] text-xs sm:text-sm">
           {day}
         </div>
       ))}
@@ -88,21 +88,22 @@ export default function LessonCalendar({ lessons, currentMonth }: LessonCalendar
         >
           {day && (
             <>
-              <div className="font-medium text-sm mb-1">{day.date}</div>
+              <div className="font-medium text-xs sm:text-sm mb-1">{day.date}</div>
               <div className="space-y-1">
-                {day.lessons.slice(0, 3).map((lesson, lessonIndex) => (
+                {day.lessons.slice(0, 2).map((lesson) => (
                   <div
                     key={lesson.id}
                     className={`lesson-indicator text-xs ${getLessonTypeColor(lesson.type)}`}
                     title={`${formatTime(lesson.date)} - ${lesson.client.name}`}
                     data-testid={`lesson-indicator-${lesson.id}`}
                   >
-                    {formatTime(lesson.date)} {lesson.client.name}
+                    <span className="hidden sm:inline">{formatTime(lesson.date)} {lesson.client.name}</span>
+                    <span className="sm:hidden">{formatTime(lesson.date)}</span>
                   </div>
                 ))}
-                {day.lessons.length > 3 && (
+                {day.lessons.length > 2 && (
                   <div className="lesson-indicator bg-gray-100 text-gray-600 text-xs">
-                    +{day.lessons.length - 3} еще
+                    +{day.lessons.length - 2} <span className="hidden sm:inline">еще</span>
                   </div>
                 )}
               </div>
