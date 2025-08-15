@@ -136,14 +136,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHorse(id: string): Promise<void> {
     await db.transaction(async (tx) => {
-      // Update lessons where this horse is assigned
-      // For completed lessons - keep the horse for statistics
-      // For non-completed lessons - remove the horse assignment
+      // First, remove horse assignments from non-completed lessons only
       await tx.delete(lessonHorses)
         .where(
           and(
             eq(lessonHorses.horseId, id),
-            // Only update non-completed lessons
+            // Only remove from non-completed lessons
             sql`EXISTS (
               SELECT 1 FROM ${lessons} 
               WHERE ${lessons.id} = ${lessonHorses.lessonId} 
@@ -152,8 +150,27 @@ export class DatabaseStorage implements IStorage {
           )
         );
 
-      // Delete the horse
-      await tx.delete(horses).where(eq(horses.id, id));
+      // Check if there are still any lesson_horses references (from completed lessons)
+      const remainingRefs = await tx.select()
+        .from(lessonHorses)
+        .where(eq(lessonHorses.horseId, id))
+        .limit(1);
+
+      if (remainingRefs.length > 0) {
+        // Horse still has completed lessons - mark as deleted instead of deleting
+        const currentHorse = await tx.select().from(horses).where(eq(horses.id, id)).limit(1);
+        if (currentHorse[0]) {
+          await tx.update(horses)
+            .set({ 
+              status: 'unavailable',
+              nickname: `[УДАЛЕНО] ${currentHorse[0].nickname}`
+            })
+            .where(eq(horses.id, id));
+        }
+      } else {
+        // No references remain, safe to delete completely
+        await tx.delete(horses).where(eq(horses.id, id));
+      }
     });
   }
 
