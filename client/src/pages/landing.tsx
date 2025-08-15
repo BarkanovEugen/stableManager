@@ -523,127 +523,76 @@ export default function LandingPage() {
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=300" 
-                alt="Соревнования по конкуру" 
-                className="w-full h-48 object-cover"
-                data-testid="event-image-competition"
-              />
-              <CardContent className="p-6">
-                <div className="text-sm text-primary font-medium mb-2" data-testid="event-date-competition">
-                  15 декабря 2024
-                </div>
-                <h4 className="text-xl font-semibold mb-3" data-testid="event-title-competition">
-                  Открытые соревнования по конкуру
-                </h4>
-                <p className="text-muted-foreground mb-4" data-testid="event-description-competition">
-                  Приглашаем всех желающих на захватывающие соревнования по преодолению препятствий
-                </p>
-                <Button variant="link" className="p-0 text-primary" data-testid="button-event-details-competition">
-                  Подробнее →
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=300" 
-                alt="Мастер-класс для детей" 
-                className="w-full h-48 object-cover"
-                data-testid="event-image-masterclass"
-              />
-              <CardContent className="p-6">
-                <div className="text-sm text-primary font-medium mb-2" data-testid="event-date-masterclass">
-                  22 декабря 2024
-                </div>
-                <h4 className="text-xl font-semibold mb-3" data-testid="event-title-masterclass">
-                  Мастер-класс для детей
-                </h4>
-                <p className="text-muted-foreground mb-4" data-testid="event-description-masterclass">
-                  Специальное занятие для юных наездников с играми и развлечениями
-                </p>
-                <Button variant="link" className="p-0 text-primary" data-testid="button-event-details-masterclass">
-                  Подробнее →
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=300" 
-                alt="Новогодняя прогулка" 
-                className="w-full h-48 object-cover"
-                data-testid="event-image-newyear"
-              />
-              <CardContent className="p-6">
-                <div className="text-sm text-primary font-medium mb-2" data-testid="event-date-newyear">
-                  31 декабря 2024
-                </div>
-                <h4 className="text-xl font-semibold mb-3" data-testid="event-title-newyear">
-                  Новогодняя прогулка
-                </h4>
-                <p className="text-muted-foreground mb-4" data-testid="event-description-newyear">
-                  Праздничная конная прогулка с горячим чаем и подарками
-                </p>
-                <Button variant="link" className="p-0 text-primary" data-testid="button-event-details-newyear">
-                  Подробнее →
-                </Button>
-              </CardContent>
-            </Card>
+            {events.filter(event => event.isActive).map((event) => (
+              <Card key={event.id} className="overflow-hidden">
+                {event.imageUrl && (
+                  <img 
+                    src={event.imageUrl} 
+                    alt={event.title}
+                    className="w-full h-48 object-cover"
+                    data-testid={`event-image-${event.id}`}
+                  />
+                )}
+                <CardContent className="p-6">
+                  <div className="flex items-center text-sm text-muted-foreground mb-2">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    {new Date(event.eventDate).toLocaleDateString('ru-RU')}
+                  </div>
+                  <h4 className="text-xl font-semibold mb-3" data-testid={`event-title-${event.id}`}>
+                    {event.title}
+                  </h4>
+                  <p className="text-muted-foreground mb-4" data-testid={`event-description-${event.id}`}>
+                    {event.description}
+                  </p>
+                  {event.location && (
+                    <div className="flex items-center text-sm text-muted-foreground mb-2">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {event.location}
+                    </div>
+                  )}
+                  {event.maxParticipants && (
+                    <div className="flex items-center text-sm text-muted-foreground mb-4">
+                      <Users className="w-4 h-4 mr-1" />
+                      {event.registeredParticipants}/{event.maxParticipants} участников
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    {!canEdit && (
+                      <Button size="sm" className="flex-1" data-testid={`button-register-event-${event.id}`}>
+                        Зарегистрироваться
+                      </Button>
+                    )}
+                    {canEdit && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditEvent(event)}
+                          data-testid={`button-edit-event-${event.id}`}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Изменить
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeleteEvent(event.id)}
+                          data-testid={`button-delete-event-${event.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Удалить
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* News Section */}
-      <section id="news" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold text-center mb-12" data-testid="news-title">
-            Новости
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <article className="flex flex-col md:flex-row gap-4">
-              <img 
-                src="https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
-                alt="Новые лошади в конюшне" 
-                className="w-full md:w-48 h-32 md:h-auto object-cover rounded-lg"
-                data-testid="news-image-horses"
-              />
-              <div>
-                <div className="text-sm text-muted-foreground mb-2" data-testid="news-date-horses">
-                  5 декабря 2024
-                </div>
-                <h4 className="text-xl font-semibold mb-3" data-testid="news-title-horses">
-                  Пополнение в нашей конюшне
-                </h4>
-                <p className="text-muted-foreground" data-testid="news-description-horses">
-                  К нам прибыли три новые лошади: Звездочка, Буран и Ветер. Все они уже готовы к занятиям!
-                </p>
-              </div>
-            </article>
-            
-            <article className="flex flex-col md:flex-row gap-4">
-              <img 
-                src="https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
-                alt="Обновление программ" 
-                className="w-full md:w-48 h-32 md:h-auto object-cover rounded-lg"
-                data-testid="news-image-programs"
-              />
-              <div>
-                <div className="text-sm text-muted-foreground mb-2" data-testid="news-date-programs">
-                  28 ноября 2024
-                </div>
-                <h4 className="text-xl font-semibold mb-3" data-testid="news-title-programs">
-                  Обновление учебных программ
-                </h4>
-                <p className="text-muted-foreground" data-testid="news-description-programs">
-                  Мы расширили программы обучения и добавили новые курсы для продвинутых всадников.
-                </p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
+
 
       {/* Social Media & Contact */}
       <section className="py-16 bg-gray-50">
