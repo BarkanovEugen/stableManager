@@ -4,13 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { VKLoginButton } from "@/components/vk-login-button";
 import { useAuth } from "@/hooks/use-auth";
-import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X } from "lucide-react";
+import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X, Plus, Trash2, Edit } from "lucide-react";
+import type { News, Event } from "@shared/content-schema";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [showNewsModal, setShowNewsModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingNews, setEditingNews] = useState<News | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  
   const [editableContent, setEditableContent] = useState({
     siteTitle: "Конюшня \"Солнечная Поляна\"",
     heroTitle: "Добро пожаловать в нашу конюшню",
@@ -25,9 +33,139 @@ export default function LandingPage() {
     eventsTitle: "Предстоящие мероприятия"
   });
 
+  // Mock data - in real app this would come from API
+  const [news, setNews] = useState<News[]>([
+    {
+      id: "1",
+      title: "Новые тренировки по конкуру",
+      content: "Мы рады сообщить о запуске новой программы тренировок по конкуру для продвинутых всадников.",
+      imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+      publishedAt: "2024-12-25",
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    }
+  ]);
+
+  const [events, setEvents] = useState<Event[]>([
+    {
+      id: "1", 
+      title: "Соревнования по конкуру",
+      description: "Ежегодные соревнования среди всадников всех уровней подготовки",
+      imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
+      eventDate: "2024-01-15",
+      location: "Главная арена",
+      maxParticipants: 50,
+      registeredParticipants: 23,
+      isActive: true,
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    },
+    {
+      id: "2",
+      title: "Мастер-класс по иппотерапии",
+      description: "Профессиональный мастер-класс от ведущих специалистов",
+      imageUrl: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=600",
+      eventDate: "2024-01-22",
+      location: "Терапевтическая зона",
+      maxParticipants: 15,
+      registeredParticipants: 8,
+      isActive: true,
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    }
+  ]);
+
+  const [newsForm, setNewsForm] = useState({
+    title: "",
+    content: "",
+    imageUrl: "",
+    publishedAt: new Date().toISOString().split('T')[0]
+  });
+
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+    eventDate: "",
+    location: "",
+    maxParticipants: 0,
+    isActive: true
+  });
+
   const handleSaveContent = () => {
-    // Here you could save to backend/database
     setIsEditing(false);
+  };
+
+  const handleNewsSubmit = () => {
+    if (editingNews) {
+      setNews(prev => prev.map(n => n.id === editingNews.id ? 
+        { ...editingNews, ...newsForm, updatedAt: new Date().toISOString() } : n
+      ));
+    } else {
+      const newNews: News = {
+        ...newsForm,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setNews(prev => [newNews, ...prev]);
+    }
+    setShowNewsModal(false);
+    setEditingNews(null);
+    setNewsForm({ title: "", content: "", imageUrl: "", publishedAt: new Date().toISOString().split('T')[0] });
+  };
+
+  const handleEventSubmit = () => {
+    if (editingEvent) {
+      setEvents(prev => prev.map(e => e.id === editingEvent.id ? 
+        { ...editingEvent, ...eventForm, updatedAt: new Date().toISOString() } : e
+      ));
+    } else {
+      const newEvent: Event = {
+        ...eventForm,
+        id: Date.now().toString(),
+        registeredParticipants: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setEvents(prev => [newEvent, ...prev]);
+    }
+    setShowEventModal(false);
+    setEditingEvent(null);
+    setEventForm({ title: "", description: "", imageUrl: "", eventDate: "", location: "", maxParticipants: 0, isActive: true });
+  };
+
+  const handleEditNews = (newsItem: News) => {
+    setEditingNews(newsItem);
+    setNewsForm({
+      title: newsItem.title,
+      content: newsItem.content,
+      imageUrl: newsItem.imageUrl || "",
+      publishedAt: newsItem.publishedAt
+    });
+    setShowNewsModal(true);
+  };
+
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title,
+      description: event.description,
+      imageUrl: event.imageUrl || "",
+      eventDate: event.eventDate,
+      location: event.location || "",
+      maxParticipants: event.maxParticipants || 0,
+      isActive: event.isActive
+    });
+    setShowEventModal(true);
+  };
+
+  const handleDeleteNews = (id: string) => {
+    setNews(prev => prev.filter(n => n.id !== id));
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    setEvents(prev => prev.filter(e => e.id !== id));
   };
 
   const canEdit = user?.role === "administrator";
@@ -288,21 +426,102 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* News Section */}
+      <section id="news" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-12">
+            <h3 className="text-3xl font-bold" data-testid="news-title">
+              Новости
+            </h3>
+            {canEdit && (
+              <Button 
+                onClick={() => setShowNewsModal(true)}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="button-add-news"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Добавить новость
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {news.map((newsItem) => (
+              <Card key={newsItem.id} className="overflow-hidden">
+                {newsItem.imageUrl && (
+                  <img 
+                    src={newsItem.imageUrl} 
+                    alt={newsItem.title}
+                    className="w-full h-48 object-cover"
+                    data-testid={`news-image-${newsItem.id}`}
+                  />
+                )}
+                <CardContent className="p-6">
+                  <div className="flex items-center text-sm text-muted-foreground mb-2">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    {new Date(newsItem.publishedAt).toLocaleDateString('ru-RU')}
+                  </div>
+                  <h4 className="text-xl font-semibold mb-3" data-testid={`news-title-${newsItem.id}`}>
+                    {newsItem.title}
+                  </h4>
+                  <p className="text-muted-foreground mb-4" data-testid={`news-content-${newsItem.id}`}>
+                    {newsItem.content.length > 100 ? `${newsItem.content.substring(0, 100)}...` : newsItem.content}
+                  </p>
+                  {canEdit && (
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditNews(newsItem)}
+                        data-testid={`button-edit-news-${newsItem.id}`}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Изменить
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDeleteNews(newsItem.id)}
+                        data-testid={`button-delete-news-${newsItem.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Удалить
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Events Section */}
       <section id="events" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {isEditing ? (
-            <Input
-              value={editableContent.eventsTitle}
-              onChange={(e) => setEditableContent(prev => ({ ...prev, eventsTitle: e.target.value }))}
-              className="text-3xl font-bold text-center mb-12 border-2 border-gray-300"
-              data-testid="edit-events-title"
-            />
-          ) : (
-            <h3 className="text-3xl font-bold text-center mb-12" data-testid="events-title">
-              {editableContent.eventsTitle}
-            </h3>
-          )}
+          <div className="flex justify-between items-center mb-12">
+            {isEditing ? (
+              <Input
+                value={editableContent.eventsTitle}
+                onChange={(e) => setEditableContent(prev => ({ ...prev, eventsTitle: e.target.value }))}
+                className="text-3xl font-bold border-2 border-gray-300 max-w-md"
+                data-testid="edit-events-title"
+              />
+            ) : (
+              <h3 className="text-3xl font-bold" data-testid="events-title">
+                {editableContent.eventsTitle}
+              </h3>
+            )}
+            {canEdit && (
+              <Button 
+                onClick={() => setShowEventModal(true)}
+                className="bg-green-600 text-white hover:bg-green-700"
+                data-testid="button-add-event"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Добавить мероприятие
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="overflow-hidden">
               <img 
@@ -487,6 +706,168 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      {/* News Modal */}
+      <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingNews ? "Редактировать новость" : "Добавить новость"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="news-title">Заголовок</Label>
+              <Input
+                id="news-title"
+                value={newsForm.title}
+                onChange={(e) => setNewsForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Введите заголовок новости"
+                data-testid="input-news-title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="news-content">Содержание</Label>
+              <Textarea
+                id="news-content"
+                value={newsForm.content}
+                onChange={(e) => setNewsForm(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Введите содержание новости"
+                rows={4}
+                data-testid="textarea-news-content"
+              />
+            </div>
+            <div>
+              <Label htmlFor="news-image">URL изображения (опционально)</Label>
+              <Input
+                id="news-image"
+                value={newsForm.imageUrl}
+                onChange={(e) => setNewsForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+                data-testid="input-news-image"
+              />
+            </div>
+            <div>
+              <Label htmlFor="news-date">Дата публикации</Label>
+              <Input
+                id="news-date"
+                type="date"
+                value={newsForm.publishedAt}
+                onChange={(e) => setNewsForm(prev => ({ ...prev, publishedAt: e.target.value }))}
+                data-testid="input-news-date"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewsModal(false)}
+                data-testid="button-cancel-news"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleNewsSubmit}
+                disabled={!newsForm.title || !newsForm.content}
+                data-testid="button-save-news"
+              >
+                {editingNews ? "Сохранить" : "Добавить"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Modal */}
+      <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingEvent ? "Редактировать мероприятие" : "Добавить мероприятие"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="event-title">Название</Label>
+              <Input
+                id="event-title"
+                value={eventForm.title}
+                onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Введите название мероприятия"
+                data-testid="input-event-title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="event-description">Описание</Label>
+              <Textarea
+                id="event-description"
+                value={eventForm.description}
+                onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Введите описание мероприятия"
+                rows={3}
+                data-testid="textarea-event-description"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="event-date">Дата проведения</Label>
+                <Input
+                  id="event-date"
+                  type="date"
+                  value={eventForm.eventDate}
+                  onChange={(e) => setEventForm(prev => ({ ...prev, eventDate: e.target.value }))}
+                  data-testid="input-event-date"
+                />
+              </div>
+              <div>
+                <Label htmlFor="event-participants">Максимум участников</Label>
+                <Input
+                  id="event-participants"
+                  type="number"
+                  value={eventForm.maxParticipants}
+                  onChange={(e) => setEventForm(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 0 }))}
+                  placeholder="0"
+                  data-testid="input-event-participants"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="event-location">Место проведения (опционально)</Label>
+              <Input
+                id="event-location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                placeholder="Введите место проведения"
+                data-testid="input-event-location"
+              />
+            </div>
+            <div>
+              <Label htmlFor="event-image">URL изображения (опционально)</Label>
+              <Input
+                id="event-image"
+                value={eventForm.imageUrl}
+                onChange={(e) => setEventForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+                data-testid="input-event-image"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowEventModal(false)}
+                data-testid="button-cancel-event"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleEventSubmit}
+                disabled={!eventForm.title || !eventForm.description || !eventForm.eventDate}
+                data-testid="button-save-event"
+              >
+                {editingEvent ? "Сохранить" : "Добавить"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
