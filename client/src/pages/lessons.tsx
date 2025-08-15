@@ -126,9 +126,11 @@ export default function LessonsPage() {
         <Button 
           onClick={() => setShowCreateModal(true)}
           data-testid="button-create-lesson"
+          className="w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Создать занятие
+          <span className="hidden sm:inline">Создать занятие</span>
+          <span className="sm:hidden">Создать</span>
         </Button>
       </div>
 
@@ -137,35 +139,38 @@ export default function LessonsPage() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle data-testid="calendar-title">Календарь занятий</CardTitle>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowExportModal(true)}
                 data-testid="button-export-calendar"
+                className="w-full sm:w-auto"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 Экспортировать
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                data-testid="button-prev-month"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <span className="font-medium px-4" data-testid="current-month">
-                {currentMonth.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                data-testid="button-next-month"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                  data-testid="button-prev-month"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="font-medium px-2 text-sm sm:text-base whitespace-nowrap" data-testid="current-month">
+                  {currentMonth.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                  data-testid="button-next-month"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -179,9 +184,9 @@ export default function LessonsPage() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle data-testid="lessons-list-title">Список занятий</CardTitle>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
+                <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
                   <SelectValue placeholder="Все статусы" />
                 </SelectTrigger>
                 <SelectContent>
@@ -195,39 +200,40 @@ export default function LessonsPage() {
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-[180px]"
+                className="w-full sm:w-[180px]"
                 data-testid="input-date-filter"
               />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Дата/Время
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Клиент
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Тип занятия
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Инструктор
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Лошадь
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Оплата
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Статус
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Действия
                   </th>
                 </tr>
@@ -235,14 +241,14 @@ export default function LessonsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLessons.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                       {lessons?.length === 0 ? "Нет созданных занятий" : "Нет занятий, соответствующих фильтрам"}
                     </td>
                   </tr>
                 ) : (
                   filteredLessons.map((lesson) => (
                     <tr key={lesson.id} className="hover:bg-gray-50" data-testid={`lesson-row-${lesson.id}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {new Date(lesson.date).toLocaleDateString("ru-RU")}
                         </div>
@@ -253,7 +259,7 @@ export default function LessonsPage() {
                           })}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900" data-testid={`lesson-client-${lesson.id}`}>
                           {lesson.client.name}
                         </div>
@@ -261,26 +267,26 @@ export default function LessonsPage() {
                           {lesson.client.phone}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-testid={`lesson-type-${lesson.id}`}>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900" data-testid={`lesson-type-${lesson.id}`}>
                         {translateLessonType(lesson.type)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {lesson.lessonInstructors.map(li => li.instructor.name).join(", ")}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {lesson.lessonHorses.map(lh => lh.horse.nickname).join(", ")}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{lesson.cost} ₽</div>
                         <div className="text-sm text-muted-foreground">
                           {getPaymentTypeBadge(lesson.paymentType)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" data-testid={`lesson-status-${lesson.id}`}>
+                      <td className="px-4 py-4 whitespace-nowrap" data-testid={`lesson-status-${lesson.id}`}>
                         {getStatusBadge(lesson)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-1">
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -300,11 +306,6 @@ export default function LessonsPage() {
                               <CheckCircle className="w-4 h-4" />
                             </Button>
                           )}
-                          {lesson.status === "planned" && (
-                            <Button variant="ghost" size="sm" className="text-red-600" data-testid={`button-cancel-${lesson.id}`}>
-                              Отменить
-                            </Button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -312,6 +313,103 @@ export default function LessonsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {filteredLessons.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {lessons?.length === 0 ? "Нет созданных занятий" : "Нет занятий, соответствующих фильтрам"}
+              </div>
+            ) : (
+              filteredLessons.map((lesson) => (
+                <Card key={lesson.id} className="border border-gray-200" data-testid={`lesson-card-${lesson.id}`}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(lesson.date).toLocaleDateString("ru-RU")}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(lesson.date).toLocaleTimeString("ru-RU", { 
+                            hour: "2-digit", 
+                            minute: "2-digit" 
+                          })}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        {getStatusBadge(lesson)}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-2 mb-3">
+                      <div>
+                        <span className="text-xs text-muted-foreground">Клиент:</span>
+                        <div className="text-sm font-medium" data-testid={`lesson-client-${lesson.id}`}>
+                          {lesson.client.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{lesson.client.phone}</div>
+                      </div>
+                      
+                      <div>
+                        <span className="text-xs text-muted-foreground">Тип занятия:</span>
+                        <div className="text-sm" data-testid={`lesson-type-${lesson.id}`}>
+                          {translateLessonType(lesson.type)}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-xs text-muted-foreground">Инструктор:</span>
+                          <div className="text-sm">
+                            {lesson.lessonInstructors.map(li => li.instructor.name).join(", ")}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground">Лошадь:</span>
+                          <div className="text-sm">
+                            {lesson.lessonHorses.map(lh => lh.horse.nickname).join(", ")}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <span className="text-xs text-muted-foreground">Оплата:</span>
+                        <div className="text-sm font-medium">{lesson.cost} ₽</div>
+                        <div className="text-xs text-muted-foreground">
+                          {getPaymentTypeBadge(lesson.paymentType)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        data-testid={`button-edit-${lesson.id}`}
+                        onClick={() => handleEditLesson(lesson.id)}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Изменить
+                      </Button>
+                      {lesson.status === "planned" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-green-600 hover:bg-green-50 flex-1"
+                          onClick={() => handleCompleteLesson(lesson.id)}
+                          data-testid={`button-complete-${lesson.id}`}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Завершить
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
