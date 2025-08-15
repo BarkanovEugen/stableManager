@@ -2,12 +2,35 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { VKLoginButton } from "@/components/vk-login-button";
 import { useAuth } from "@/hooks/use-auth";
-import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings } from "lucide-react";
+import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X } from "lucide-react";
 
 export default function LandingPage() {
   const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableContent, setEditableContent] = useState({
+    siteTitle: "Конюшня \"Солнечная Поляна\"",
+    heroTitle: "Добро пожаловать в нашу конюшню",
+    heroDescription: "Профессиональные занятия верховой ездой, иппотерапия и незабываемые прогулки с лошадьми в живописной природе",
+    servicesTitle: "Наши услуги",
+    service1Title: "Обучение верховой езде",
+    service1Description: "Занятия для новичков и опытных всадников с профессиональными инструкторами",
+    service2Title: "Иппотерапия",
+    service2Description: "Лечебная верховая езда для реабилитации и улучшения самочувствия",
+    service3Title: "Конная стрельба из лука",
+    service3Description: "Уникальные занятия по стрельбе из лука верхом на лошади",
+    eventsTitle: "Предстоящие мероприятия"
+  });
+
+  const handleSaveContent = () => {
+    // Here you could save to backend/database
+    setIsEditing(false);
+  };
+
+  const canEdit = user?.role === "administrator";
 
   return (
     <div className="min-h-screen bg-background" data-testid="landing-page">
@@ -17,9 +40,18 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Rabbit className="text-primary text-2xl mr-3" data-testid="logo-icon" />
-              <h1 className="text-xl font-semibold text-gray-900" data-testid="site-title">
-                Конюшня "Солнечная Поляна"
-              </h1>
+              {isEditing ? (
+                <Input
+                  value={editableContent.siteTitle}
+                  onChange={(e) => setEditableContent(prev => ({ ...prev, siteTitle: e.target.value }))}
+                  className="text-xl font-semibold max-w-xs"
+                  data-testid="edit-site-title"
+                />
+              ) : (
+                <h1 className="text-xl font-semibold text-gray-900" data-testid="site-title">
+                  {editableContent.siteTitle}
+                </h1>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <a href="#events" className="text-muted hover:text-primary transition-colors" data-testid="link-events">
@@ -28,6 +60,44 @@ export default function LandingPage() {
               <a href="#news" className="text-muted hover:text-primary transition-colors" data-testid="link-news">
                 Новости
               </a>
+              {canEdit && (
+                <div className="flex items-center space-x-2">
+                  {isEditing ? (
+                    <>
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={handleSaveContent}
+                        className="bg-green-600 text-white hover:bg-green-700"
+                        data-testid="button-save-content"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Сохранить
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsEditing(false)}
+                        data-testid="button-cancel-edit"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Отмена
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                      data-testid="button-edit-content"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Редактировать
+                    </Button>
+                  )}
+                </div>
+              )}
               {user ? (
                 <Link href="/dashboard">
                   <Button 
@@ -59,12 +129,32 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6" data-testid="hero-title">
-            Добро пожаловать в нашу конюшню
-          </h2>
-          <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto" data-testid="hero-description">
-            Профессиональные занятия верховой ездой, иппотерапия и незабываемые прогулки с лошадьми в живописной природе
-          </p>
+          {isEditing ? (
+            <div className="space-y-4">
+              <Input
+                value={editableContent.heroTitle}
+                onChange={(e) => setEditableContent(prev => ({ ...prev, heroTitle: e.target.value }))}
+                className="text-4xl lg:text-6xl font-bold text-center bg-white/90 backdrop-blur-sm border-2 border-white"
+                data-testid="edit-hero-title"
+              />
+              <Textarea
+                value={editableContent.heroDescription}
+                onChange={(e) => setEditableContent(prev => ({ ...prev, heroDescription: e.target.value }))}
+                className="text-xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-3xl mx-auto"
+                rows={3}
+                data-testid="edit-hero-description"
+              />
+            </div>
+          ) : (
+            <>
+              <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6" data-testid="hero-title">
+                {editableContent.heroTitle}
+              </h2>
+              <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto" data-testid="hero-description">
+                {editableContent.heroDescription}
+              </p>
+            </>
+          )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
@@ -88,41 +178,110 @@ export default function LandingPage() {
       {/* Services Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold text-center mb-12" data-testid="services-title">
-            Наши услуги
-          </h3>
+          {isEditing ? (
+            <Input
+              value={editableContent.servicesTitle}
+              onChange={(e) => setEditableContent(prev => ({ ...prev, servicesTitle: e.target.value }))}
+              className="text-3xl font-bold text-center mb-12 border-2 border-gray-300"
+              data-testid="edit-services-title"
+            />
+          ) : (
+            <h3 className="text-3xl font-bold text-center mb-12" data-testid="services-title">
+              {editableContent.servicesTitle}
+            </h3>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="text-center">
               <CardContent className="p-6">
                 <Users className="text-primary text-4xl mb-4 mx-auto" />
-                <h4 className="text-xl font-semibold mb-3" data-testid="service-title-training">
-                  Обучение верховой езде
-                </h4>
-                <p className="text-muted-foreground" data-testid="service-description-training">
-                  Занятия для новичков и опытных всадников с профессиональными инструкторами
-                </p>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={editableContent.service1Title}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service1Title: e.target.value }))}
+                      className="text-xl font-semibold text-center"
+                      data-testid="edit-service1-title"
+                    />
+                    <Textarea
+                      value={editableContent.service1Description}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service1Description: e.target.value }))}
+                      className="text-muted-foreground text-center"
+                      rows={2}
+                      data-testid="edit-service1-description"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-training">
+                      {editableContent.service1Title}
+                    </h4>
+                    <p className="text-muted-foreground" data-testid="service-description-training">
+                      {editableContent.service1Description}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <Heart className="text-primary text-4xl mb-4 mx-auto" />
-                <h4 className="text-xl font-semibold mb-3" data-testid="service-title-therapy">
-                  Иппотерапия
-                </h4>
-                <p className="text-muted-foreground" data-testid="service-description-therapy">
-                  Лечебная верховая езда для реабилитации и улучшения самочувствия
-                </p>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={editableContent.service2Title}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service2Title: e.target.value }))}
+                      className="text-xl font-semibold text-center"
+                      data-testid="edit-service2-title"
+                    />
+                    <Textarea
+                      value={editableContent.service2Description}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service2Description: e.target.value }))}
+                      className="text-muted-foreground text-center"
+                      rows={2}
+                      data-testid="edit-service2-description"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-therapy">
+                      {editableContent.service2Title}
+                    </h4>
+                    <p className="text-muted-foreground" data-testid="service-description-therapy">
+                      {editableContent.service2Description}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <Target className="text-primary text-4xl mb-4 mx-auto" />
-                <h4 className="text-xl font-semibold mb-3" data-testid="service-title-archery">
-                  Конная стрельба из лука
-                </h4>
-                <p className="text-muted-foreground" data-testid="service-description-archery">
-                  Уникальные занятия по стрельбе из лука верхом на лошади
-                </p>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={editableContent.service3Title}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service3Title: e.target.value }))}
+                      className="text-xl font-semibold text-center"
+                      data-testid="edit-service3-title"
+                    />
+                    <Textarea
+                      value={editableContent.service3Description}
+                      onChange={(e) => setEditableContent(prev => ({ ...prev, service3Description: e.target.value }))}
+                      className="text-muted-foreground text-center"
+                      rows={2}
+                      data-testid="edit-service3-description"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-archery">
+                      {editableContent.service3Title}
+                    </h4>
+                    <p className="text-muted-foreground" data-testid="service-description-archery">
+                      {editableContent.service3Description}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -132,9 +291,18 @@ export default function LandingPage() {
       {/* Events Section */}
       <section id="events" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold text-center mb-12" data-testid="events-title">
-            Предстоящие мероприятия
-          </h3>
+          {isEditing ? (
+            <Input
+              value={editableContent.eventsTitle}
+              onChange={(e) => setEditableContent(prev => ({ ...prev, eventsTitle: e.target.value }))}
+              className="text-3xl font-bold text-center mb-12 border-2 border-gray-300"
+              data-testid="edit-events-title"
+            />
+          ) : (
+            <h3 className="text-3xl font-bold text-center mb-12" data-testid="events-title">
+              {editableContent.eventsTitle}
+            </h3>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="overflow-hidden">
               <img 
