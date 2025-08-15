@@ -5,17 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ChevronLeft, ChevronRight, Edit, CheckCircle } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Edit, CheckCircle, Calendar } from "lucide-react";
 import CreateLessonModal from "@/components/lessons/create-lesson-modal";
 import EditLessonModal from "@/components/lessons/edit-lesson-modal";
 import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
 import LessonCalendar from "@/components/lessons/lesson-calendar";
+import CalendarExportModal from "@/components/lessons/calendar-export-modal";
 import { translateLessonType } from "@/lib/lesson-types";
 import type { LessonWithRelations } from "@shared/schema";
 
 export default function LessonsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -136,6 +138,15 @@ export default function LessonsPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle data-testid="calendar-title">Календарь занятий</CardTitle>
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExportModal(true)}
+                data-testid="button-export-calendar"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Экспортировать
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -323,6 +334,13 @@ export default function LessonsPage() {
         <LessonCompletionModal
           lessonId={selectedLessonId}
           onClose={() => setSelectedLessonId(null)}
+        />
+      )}
+
+      {showExportModal && (
+        <CalendarExportModal
+          lessons={lessons || []}
+          onClose={() => setShowExportModal(false)}
         />
       )}
     </div>
