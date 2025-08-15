@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Rabbit, RussianRuble, UserPlus } from "lucide-react";
 import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
+import { translateLessonType } from "@/lib/lesson-types";
 
 export default function Dashboard() {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
@@ -170,7 +171,7 @@ export default function Dashboard() {
                           {lesson.client.name}
                         </p>
                         <p className="text-sm text-muted-foreground" data-testid={`lesson-type-${lesson.id}`}>
-                          {lesson.type}
+                          {translateLessonType(lesson.type)}
                         </p>
                       </div>
                     </div>

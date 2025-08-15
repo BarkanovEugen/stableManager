@@ -10,6 +10,7 @@ import CreateLessonModal from "@/components/lessons/create-lesson-modal";
 import EditLessonModal from "@/components/lessons/edit-lesson-modal";
 import LessonCompletionModal from "@/components/lessons/lesson-completion-modal";
 import LessonCalendar from "@/components/lessons/lesson-calendar";
+import { translateLessonType } from "@/lib/lesson-types";
 import type { LessonWithRelations } from "@shared/schema";
 
 export default function LessonsPage() {
@@ -250,7 +251,7 @@ export default function LessonsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-testid={`lesson-type-${lesson.id}`}>
-                        {getLessonType(lesson.type)}
+                        {translateLessonType(lesson.type)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {lesson.lessonInstructors.map(li => li.instructor.name).join(", ")}

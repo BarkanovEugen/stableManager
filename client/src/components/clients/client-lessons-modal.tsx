@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, TrendingUp, BarChart3 } from "lucide-react";
+import { translateLessonType } from "@/lib/lesson-types";
 import type { Client, LessonWithRelations } from "@shared/schema";
 
 interface ClientLessonsModalProps {
@@ -46,6 +47,7 @@ export default function ClientLessonsModal({ client, onClose }: ClientLessonsMod
 
   const mostPopularType = Object.entries(lessonTypes)
     .sort(([,a], [,b]) => b - a)[0]?.[0] || "Нет данных";
+  const mostPopularTypeTranslated = mostPopularType !== "Нет данных" ? translateLessonType(mostPopularType) : mostPopularType;
 
   // Day of week statistics
   const daysOfWeek = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -70,16 +72,7 @@ export default function ClientLessonsModal({ client, onClose }: ClientLessonsMod
     .sort(([,a], [,b]) => b - a)[0]?.[0];
   const mostPopularTime = mostPopularHour ? `${mostPopularHour}:00` : "Нет данных";
 
-  const getLessonTypeName = (type: string) => {
-    const types: Record<string, string> = {
-      hippotherapy: "Иппотерапия",
-      beginner_riding: "Верховая езда новичок",
-      advanced_riding: "Верховая езда опытный",
-      walk: "Прогулка",
-      mounted_archery: "Верховая стрельба из лука"
-    };
-    return types[type] || type;
-  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -160,12 +153,12 @@ export default function ClientLessonsModal({ client, onClose }: ClientLessonsMod
               <div className="space-y-3">
                 <div className="text-sm">
                   <span className="font-medium">Самый популярный тип: </span>
-                  {getLessonTypeName(mostPopularType)}
+                  {mostPopularTypeTranslated}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {Object.entries(lessonTypes).map(([type, count]) => (
                     <div key={type} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
-                      <span className="text-sm">{getLessonTypeName(type)}</span>
+                      <span className="text-sm">{translateLessonType(type)}</span>
                       <Badge variant="outline">{count}</Badge>
                     </div>
                   ))}
@@ -205,7 +198,7 @@ export default function ClientLessonsModal({ client, onClose }: ClientLessonsMod
                           })}
                         </div>
                         <div className="text-sm">
-                          {getLessonTypeName(lesson.type)}
+                          {translateLessonType(lesson.type)}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

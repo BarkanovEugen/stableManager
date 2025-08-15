@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { translateLessonType } from "@/lib/lesson-types";
 import type { LessonWithRelations } from "@shared/schema";
 
 interface LessonCompletionModalProps {
@@ -122,6 +123,7 @@ export default function LessonCompletionModal({ lessonId, onClose }: LessonCompl
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-medium mb-2">Информация о занятии</h3>
             <p><strong>Клиент:</strong> {lesson.client.name}</p>
+            <p><strong>Тип занятия:</strong> {translateLessonType(lesson.type)}</p>
             <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString("ru-RU")}</p>
             <p><strong>Стоимость:</strong> {lesson.cost} ₽</p>
             <p><strong>Тип оплаты:</strong> {getPaymentTypeLabel(lesson.paymentType)}</p>
