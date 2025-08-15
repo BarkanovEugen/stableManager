@@ -4,17 +4,17 @@
 
 ### Автоматический деплой одной командой:
 ```bash
-# ВАЖНО: Замените your-username на ваше GitHub имя пользователя
-curl -fsSL https://raw.githubusercontent.com/your-username/stable-crm/main/scripts/auto-deploy.sh | bash -s your-domain.com
+# Замените your-domain.com на ваш реальный домен
+curl -fsSL https://raw.githubusercontent.com/BarkanovEugen/stableManager/main/scripts/auto-deploy.sh | bash -s your-domain.com
 
-# Пример для пользователя ivan123 и домена stable.example.com:
-# curl -fsSL https://raw.githubusercontent.com/ivan123/stable-crm/main/scripts/auto-deploy.sh | bash -s stable.example.com
+# Примеры:
+# curl -fsSL https://raw.githubusercontent.com/BarkanovEugen/stableManager/main/scripts/auto-deploy.sh | bash -s stable.mysite.com
+# curl -fsSL https://raw.githubusercontent.com/BarkanovEugen/stableManager/main/scripts/auto-deploy.sh | bash -s crm.horseclub.ru
 ```
 
 Или пошагово:
 ```bash
-# Замените your-username на ваше GitHub имя
-wget https://raw.githubusercontent.com/your-username/stable-crm/main/scripts/auto-deploy.sh
+wget https://raw.githubusercontent.com/BarkanovEugen/stableManager/main/scripts/auto-deploy.sh
 chmod +x auto-deploy.sh
 ./auto-deploy.sh your-domain.com
 ```
@@ -53,7 +53,7 @@ sudo apt install -y git
 
 ### 2. Клонирование и настройка
 ```bash
-git clone https://github.com/your-username/stable-crm.git /opt/stable-crm
+git clone https://github.com/BarkanovEugen/stableManager.git /opt/stable-crm
 cd /opt/stable-crm
 cp .env.example .env
 nano .env  # Настройте переменные окружения

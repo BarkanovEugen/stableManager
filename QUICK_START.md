@@ -9,11 +9,13 @@
 
 ### 1. На VPS сервере запустите автоустановку:
 ```bash
-# ВАЖНО: Замените your-username на ваше GitHub имя, а your-domain.com на ваш домен
-curl -fsSL https://raw.githubusercontent.com/your-username/stable-crm/main/scripts/auto-deploy.sh | bash -s your-domain.com
+# Замените your-domain.com на ваш реальный домен
+curl -fsSL https://raw.githubusercontent.com/BarkanovEugen/stableManager/main/scripts/auto-deploy.sh | bash -s your-domain.com
 
-# Пример:
-# curl -fsSL https://raw.githubusercontent.com/ivan123/stable-crm/main/scripts/auto-deploy.sh | bash -s stable.example.com
+# Примеры доменов:
+# stable.example.com - если у вас есть домен example.com
+# crm.mycompany.ru - если у вас есть домен mycompany.ru
+# horseclub.site - если купили домен horseclub.site
 ```
 
 ### 2. Введите данные когда попросит:
