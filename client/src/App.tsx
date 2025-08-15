@@ -35,7 +35,6 @@ function AuthenticatedApp() {
             <Route path="/subscriptions" component={SubscriptionsPage} />
             <Route path="/users" component={UsersPage} />
             <Route path="/statistics" component={StatisticsPage} />
-            <Route path="/" component={Dashboard} />
             <Route component={NotFound} />
           </Switch>
         </main>
@@ -55,11 +54,25 @@ function Router() {
     );
   }
 
-  if (!user) {
-    return <LandingPage />;
-  }
-
-  return <AuthenticatedApp />;
+  return (
+    <Switch>
+      <Route path="/" component={LandingPage} />
+      {user && (
+        <>
+          <Route path="/dashboard" component={() => <AuthenticatedApp />} />
+          <Route path="/lessons" component={() => <AuthenticatedApp />} />
+          <Route path="/horses" component={() => <AuthenticatedApp />} />
+          <Route path="/clients" component={() => <AuthenticatedApp />} />
+          <Route path="/instructors" component={() => <AuthenticatedApp />} />
+          <Route path="/certificates" component={() => <AuthenticatedApp />} />
+          <Route path="/subscriptions" component={() => <AuthenticatedApp />} />
+          <Route path="/users" component={() => <AuthenticatedApp />} />
+          <Route path="/statistics" component={() => <AuthenticatedApp />} />
+        </>
+      )}
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 function App() {
