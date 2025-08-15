@@ -1,0 +1,33 @@
+[vite] connecting...
+[vite] connected.
+Warning: validateDOMNesting(...): <a> cannot appear as a descendant of &lt;a&gt;.
+    at a
+    at a
+    at https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=aa3ffd83:337:18
+    at nav
+    at div
+    at Sidebar (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/src/components/layout/sidebar.tsx:50:22)
+    at div
+    at AuthenticatedApp
+    at Router (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/src/App.tsx?v=Z3gUQrtzyQMuvxknPjn5Z:129:31)
+    at Provider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MAE4WKEQ.js?v=aa3ffd83:38:15)
+    at TooltipProvider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=aa3ffd83:59:5)
+    at QueryClientProvider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=aa3ffd83:2805:3)
+    at App
+at a
+at a
+at https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=aa3ffd83:337:18
+at nav
+at div
+at Sidebar (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/src/components/layout/sidebar.tsx:50:22)
+at div
+at AuthenticatedApp
+at Router (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/src/App.tsx?v=Z3gUQrtzyQMuvxknPjn5Z:129:31)
+at Provider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MAE4WKEQ.js?v=aa3ffd83:38:15)
+at TooltipProvider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=aa3ffd83:59:5)
+at QueryClientProvider (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=aa3ffd83:2805:3)
+at App
+at t.value (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://d237feda-af9c-45a6-aa40-6660d6d4c3d6-00-aeowp3kupx3l.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

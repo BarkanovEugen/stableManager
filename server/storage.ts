@@ -312,10 +312,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCertificate(id: string, certificate: Partial<InsertCertificate>): Promise<Certificate> {
-    const updateData = { ...certificate };
-    if (updateData.value !== undefined) {
-      updateData.value = updateData.value.toString() as any;
-    }
+    // Convert number to string for value field if needed
+    const updateData = {
+      ...certificate,
+      ...(certificate.value !== undefined && { value: String(certificate.value) })
+    };
     const [updated] = await db.update(certificates).set(updateData).where(eq(certificates.id, id)).returning();
     return updated;
   }
