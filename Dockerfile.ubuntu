@@ -1,0 +1,41 @@
+# Быстрый Dockerfile с Ubuntu для ускорения сборки
+FROM node:18-slim
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    dumb-init \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание пользователя
+RUN groupadd --gid 1001 nodejs && \
+    useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nodejs
+
+# Установка рабочей директории
+WORKDIR /app
+
+# Копирование package files и установка зависимостей
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
+
+# Копирование исходного кода
+COPY . .
+
+# Сборка приложения
+RUN npm run build
+
+# Создание директории для логов
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
+
+# Переключение на пользователя
+USER nodejs
+
+# Порт
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/auth/me', (res) => { process.exit(res.statusCode === 200 || res.statusCode === 401 ? 0 : 1) }).on('error', () => process.exit(1))"
+
+# Запуск
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
