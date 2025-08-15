@@ -399,6 +399,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/statistics/new-clients", requireAuth, async (req, res) => {
+    try {
+      const { year, month } = req.query;
+      const currentDate = new Date();
+      const targetYear = year ? parseInt(year as string) : currentDate.getFullYear();
+      const targetMonth = month ? parseInt(month as string) : currentDate.getMonth() + 1;
+      
+      const newClientsCount = await storage.getNewClientsCount(targetYear, targetMonth);
+      res.json({ count: newClientsCount });
+    } catch (error) {
+      console.error("Error fetching new clients statistics:", error);
+      res.status(500).json({ error: "Failed to fetch new clients statistics" });
+    }
+  });
+
   // Landing content routes (admin only)
   app.get("/api/landing-content", async (req, res) => {
     try {

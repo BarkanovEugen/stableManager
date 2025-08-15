@@ -75,6 +75,7 @@ export interface IStorage {
   getHorseWorkloadStats(startDate: Date, endDate: Date): Promise<{horseId: string, horseName: string, totalHours: number, totalLessons: number}[]>;
   getInstructorStats(startDate: Date, endDate: Date): Promise<{instructorId: string, instructorName: string, totalHours: number, totalLessons: number}[]>;
   getMonthlyRevenue(year: number, month: number): Promise<number>;
+  getNewClientsCount(year: number, month: number): Promise<number>;
   
   // Landing content
   getAllLandingContent(): Promise<LandingContent[]>;
@@ -342,9 +343,18 @@ export class DatabaseStorage implements IStorage {
     await db.delete(certificates).where(eq(certificates.id, id));
   }
 
+  // Helper function to convert null to undefined for optional relations
+  private convertLessonRelations(lesson: any): LessonWithRelations {
+    return {
+      ...lesson,
+      certificate: lesson.certificate || undefined,
+      subscription: lesson.subscription || undefined,
+    };
+  }
+
   // Lessons
   async getAllLessons(): Promise<LessonWithRelations[]> {
-    return await db.query.lessons.findMany({
+    const lessons = await db.query.lessons.findMany({
       with: {
         client: true,
         certificate: true,
@@ -362,10 +372,11 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: desc(lessons.date),
     });
+    return lessons.map(lesson => this.convertLessonRelations(lesson));
   }
 
   async getLessonsInDateRange(startDate: Date, endDate: Date): Promise<LessonWithRelations[]> {
-    return await db.query.lessons.findMany({
+    const lessons = await db.query.lessons.findMany({
       where: and(
         gte(lessons.date, startDate),
         lte(lessons.date, endDate)
@@ -387,6 +398,7 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: desc(lessons.date),
     });
+    return lessons.map(lesson => this.convertLessonRelations(lesson));
   }
 
   async getLesson(id: string): Promise<LessonWithRelations | undefined> {
@@ -408,7 +420,7 @@ export class DatabaseStorage implements IStorage {
         },
       },
     });
-    return lesson || undefined;
+    return lesson ? this.convertLessonRelations(lesson) : undefined;
   }
 
   async createLesson(lesson: InsertLesson): Promise<LessonWithRelations> {
@@ -552,6 +564,23 @@ export class DatabaseStorage implements IStorage {
       ));
 
     return parseFloat(result[0]?.revenue || "0");
+  }
+
+  async getNewClientsCount(year: number, month: number): Promise<number> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const result = await db
+      .select({
+        count: count(clients.id),
+      })
+      .from(clients)
+      .where(and(
+        gte(clients.createdAt, startDate),
+        lte(clients.createdAt, endDate)
+      ));
+
+    return result[0]?.count || 0;
   }
 
   // Landing Content

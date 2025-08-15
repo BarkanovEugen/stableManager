@@ -29,6 +29,12 @@ export default function Dashboard() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: newClientsData } = useQuery({
+    queryKey: ["/api/statistics/new-clients"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
+  });
+
   const { data: lessons } = useQuery({
     queryKey: ["/api/lessons"],
     refetchInterval: 15000, // Refresh every 15 seconds for lessons
@@ -57,7 +63,8 @@ export default function Dashboard() {
     return lessonDate === today;
   }).length : 0;
   const activeHorses = Array.isArray(horseStats) ? horseStats.filter((horse: any) => horse.totalLessons > 0).length : 0;
-  const monthlyRevenue = (revenueData && typeof revenueData === 'object' && 'revenue' in revenueData) ? revenueData.revenue : 0;
+  const monthlyRevenue = (revenueData && typeof revenueData === 'object' && 'revenue' in revenueData) ? Number(revenueData.revenue) : 0;
+  const newClientsCount = (newClientsData && typeof newClientsData === 'object' && 'count' in newClientsData) ? Number(newClientsData.count) : 0;
 
   return (
     <div data-testid="dashboard-page">
@@ -125,7 +132,7 @@ export default function Dashboard() {
                   Новых клиентов
                 </p>
                 <p className="text-2xl font-semibold text-gray-900" data-testid="stat-new-clients-value">
-                  -
+                  {newClientsCount}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">

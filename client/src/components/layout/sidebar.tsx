@@ -101,9 +101,9 @@ export default function Sidebar() {
             
             return (
               <Link key={item.path} href={item.path}>
-                <a
+                <div
                   className={cn(
-                    "flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 transition-colors",
+                    "flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer",
                     isActive && "bg-gray-100 border-r-3 border-primary"
                   )}
                   onClick={() => setIsOpen(false)}
@@ -111,7 +111,7 @@ export default function Sidebar() {
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.label}
-                </a>
+                </div>
               </Link>
             );
           })}
