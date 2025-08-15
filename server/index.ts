@@ -13,8 +13,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true in production with HTTPS
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+    secure: process.env.NODE_ENV === 'production', // Secure cookies in production
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    httpOnly: true, // Prevent XSS attacks
+    sameSite: 'lax' // CSRF protection
   }
 }));
 
