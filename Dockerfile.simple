@@ -1,0 +1,38 @@
+# Простой Dockerfile для быстрой сборки
+FROM node:18-alpine
+
+# Установка системных зависимостей
+RUN apk add --no-cache dumb-init
+
+# Создание пользователя
+RUN addgroup -g 1001 -S nodejs && adduser -S appuser -u 1001
+
+# Установка рабочей директории
+WORKDIR /app
+
+# Копирование package files и установка зависимостей
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
+
+# Копирование исходного кода
+COPY . .
+
+# Сборка приложения
+RUN npm run build
+
+# Создание логов
+RUN mkdir -p /app/logs && chown -R appuser:nodejs /app
+
+# Переключение на пользователя
+USER appuser
+
+# Порт
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/auth/me', (res) => { process.exit(res.statusCode === 200 || res.statusCode === 401 ? 0 : 1) }).on('error', () => process.exit(1))"
+
+# Запуск
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
