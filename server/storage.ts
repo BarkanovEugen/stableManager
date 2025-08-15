@@ -331,10 +331,12 @@ export class DatabaseStorage implements IStorage {
 
   async updateCertificate(id: string, certificate: Partial<InsertCertificate>): Promise<Certificate> {
     // Convert number to string for value field if needed
-    const updateData = {
+    const updateData: any = {
       ...certificate,
-      ...(certificate.value !== undefined && { value: String(certificate.value) })
     };
+    if (certificate.value !== undefined) {
+      updateData.value = String(certificate.value);
+    }
     const [updated] = await db.update(certificates).set(updateData).where(eq(certificates.id, id)).returning();
     return updated;
   }
@@ -347,8 +349,8 @@ export class DatabaseStorage implements IStorage {
   private convertLessonRelations(lesson: any): LessonWithRelations {
     return {
       ...lesson,
-      certificate: lesson.certificate || undefined,
-      subscription: lesson.subscription || undefined,
+      certificate: lesson.certificate ?? undefined,
+      subscription: lesson.subscription ?? undefined,
     };
   }
 
