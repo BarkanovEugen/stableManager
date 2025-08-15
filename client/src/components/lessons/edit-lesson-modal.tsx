@@ -258,7 +258,7 @@ export default function EditLessonModal({ lessonId, onClose }: EditLessonModalPr
           <div>
             <Label>Лошади*</Label>
             <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-              {horses?.map(horse => (
+              {horses?.filter(horse => !horse.nickname.includes('[УДАЛЕНО]')).map(horse => (
                 <div key={horse.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`horse-${horse.id}`}
