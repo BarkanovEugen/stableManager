@@ -160,15 +160,16 @@ export default function LandingPage() {
                 </h1>
               )}
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="#events" className="text-muted hover:text-primary transition-colors" data-testid="link-events">
-                Мероприятия
-              </a>
-              <a href="#news" className="text-muted hover:text-primary transition-colors" data-testid="link-news">
-                Новости
-              </a>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Навигационные ссылки - скрыты на малых экранах */}
+              <div className="hidden md:flex items-center space-x-4">
+                <a href="#events" className="text-muted hover:text-primary transition-colors" data-testid="link-events">
+                  Мероприятия
+                </a>
+              </div>
+              
               {canEdit && (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   {isEditing ? (
                     <>
                       <Button 
@@ -178,8 +179,8 @@ export default function LandingPage() {
                         className="bg-green-600 text-white hover:bg-green-700"
                         data-testid="button-save-content"
                       >
-                        <Save className="w-4 h-4 mr-2" />
-                        Сохранить
+                        <Save className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Сохранить</span>
                       </Button>
                       <Button 
                         variant="outline" 
@@ -187,8 +188,8 @@ export default function LandingPage() {
                         onClick={() => setIsEditing(false)}
                         data-testid="button-cancel-edit"
                       >
-                        <X className="w-4 h-4 mr-2" />
-                        Отмена
+                        <X className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Отмена</span>
                       </Button>
                     </>
                   ) : (
@@ -199,8 +200,8 @@ export default function LandingPage() {
                       className="border-orange-500 text-orange-500 hover:bg-orange-50"
                       data-testid="button-edit-content"
                     >
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Редактировать
+                      <Edit3 className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Редактировать</span>
                     </Button>
                   )}
                 </div>
@@ -213,8 +214,9 @@ export default function LandingPage() {
                     className="bg-primary text-white hover:bg-blue-700"
                     data-testid="button-admin-panel"
                   >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Панель управления
+                    <Settings className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Панель управления</span>
+                    <span className="sm:hidden">CRM</span>
                   </Button>
                 </Link>
               ) : (
