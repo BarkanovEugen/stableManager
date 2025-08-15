@@ -48,7 +48,7 @@ sudo mkdir -p /opt/stable-crm
 sudo chown $USER:$USER /opt/stable-crm
 
 # Клонируем проект
-git clone <your-repo-url> /opt/stable-crm
+git clone https://github.com/BarkanovEugen/stableManager.git /opt/stable-crm
 cd /opt/stable-crm
 
 # Создаем файл .env из примера
@@ -67,15 +67,15 @@ PORT=3000
 # Database (Docker Compose автоматически настроит сеть)
 POSTGRES_DB=stable_crm
 POSTGRES_USER=stable_user
-POSTGRES_PASSWORD=your_secure_db_password_here
-DATABASE_URL=postgresql://stable_user:your_secure_db_password_here@postgres:5432/stable_crm
+POSTGRES_PASSWORD=10Clarmie91
+DATABASE_URL=postgresql://stable_user:10Clarmie91@postgres:5432/stable_crm
 
 # Session Security
-SESSION_SECRET=your_very_secure_session_secret_minimum_32_characters_long
+SESSION_SECRET=MXYNATF93jv+H7ryAn24l2F9N4MJvBty+h+RLyn8yXJYOFjBVMXbtNnZfb1jy1y4
 
 # VK ID Configuration
 VK_APP_ID=54045385
-ADMIN_VK_ID=12345  # Замените на ваш VK ID для администратора
+ADMIN_VK_ID=213430885  # Замените на ваш VK ID для администратора
 
 # Optional: Object Storage (если используется)
 DEFAULT_OBJECT_STORAGE_BUCKET_ID=your_bucket_id
