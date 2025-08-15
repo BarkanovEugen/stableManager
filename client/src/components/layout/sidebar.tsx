@@ -138,17 +138,16 @@ export default function Sidebar() {
             </div>
           </div>
           <div className="space-y-2">
-            <Link href="/" className="block">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground hover:text-gray-700"
-                data-testid="button-go-to-site"
-              >
-                <Globe className="w-4 h-4 mr-2" />
-                Перейти на сайт
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/")}
+              className="w-full justify-start text-muted-foreground hover:text-gray-700"
+              data-testid="button-go-to-site"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              Перейти на сайт
+            </Button>
             <Button
               variant="ghost"
               size="sm"
