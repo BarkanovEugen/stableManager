@@ -1,0 +1,59 @@
+=> ERROR [2/9] RUN apt-get update && apt-get install -y     dumb-init     && rm -rf /var/lib/apt/lists/*       421.3s
+------                                                                                                                 
+ > [2/9] RUN apt-get update && apt-get install -y     dumb-init     && rm -rf /var/lib/apt/lists/*:                    
+0.248 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]                                                   
+30.25 Ign:1 http://deb.debian.org/debian bookworm InRelease                                                            
+30.29 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]                                          
+60.29 Ign:2 http://deb.debian.org/debian bookworm-updates InRelease
+60.37 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+90.38 Ign:3 http://deb.debian.org/debian-security bookworm-security InRelease
+90.42 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+120.4 Ign:1 http://deb.debian.org/debian bookworm InRelease
+120.5 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+150.5 Ign:2 http://deb.debian.org/debian bookworm-updates InRelease
+150.6 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+180.6 Ign:3 http://deb.debian.org/debian-security bookworm-security InRelease
+180.7 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+210.7 Ign:1 http://deb.debian.org/debian bookworm InRelease
+240.8 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+270.8 Ign:2 http://deb.debian.org/debian bookworm-updates InRelease
+301.0 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+331.0 Ign:3 http://deb.debian.org/debian-security bookworm-security InRelease
+331.1 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+361.1 Err:1 http://deb.debian.org/debian bookworm InRelease
+361.1   Connection timed out [IP: 199.232.174.132 80]
+361.2 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+391.2 Err:2 http://deb.debian.org/debian bookworm-updates InRelease
+391.2   Connection timed out [IP: 199.232.174.132 80]
+391.2 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+421.2 Err:3 http://deb.debian.org/debian-security bookworm-security InRelease
+421.2   Connection timed out [IP: 199.232.174.132 80]
+421.2 Reading package lists...
+421.2 W: Failed to fetch http://deb.debian.org/debian/dists/bookworm/InRelease  Connection timed out [IP: 199.232.174.132 80]
+421.2 W: Failed to fetch http://deb.debian.org/debian/dists/bookworm-updates/InRelease  Connection timed out [IP: 199.232.174.132 80]
+421.2 W: Failed to fetch http://deb.debian.org/debian-security/dists/bookworm-security/InRelease  Connection timed out [IP: 199.232.174.132 80]
+421.2 W: Some index files failed to download. They have been ignored, or old ones used instead.
+421.3 Reading package lists...
+421.3 Building dependency tree...
+421.3 Reading state information...
+421.3 E: Unable to locate package dumb-init
+------
+Dockerfile.ubuntu:5
+
+--------------------
+
+   4 |     # Установка системных зависимостей
+
+   5 | >>> RUN apt-get update && apt-get install -y \
+
+   6 | >>>     dumb-init \
+
+   7 | >>>     && rm -rf /var/lib/apt/lists/*
+
+   8 |     
+
+--------------------
+
+failed to solve: process "/bin/sh -c apt-get update && apt-get install -y     dumb-init     && rm -rf /var/lib/apt/lists/*" did not complete successfully: exit code: 100
+
+root@cv5135802:/opt/stable-crm# 
