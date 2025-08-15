@@ -7,6 +7,7 @@ import {
   insertLandingContentSchema 
 } from "@shared/schema";
 import { authenticateVK, requireAuth, requireRole } from "./auth";
+import { generateICalFeed, generateWebCalUrl, generateCalDAVUrl } from "./calendar";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -411,6 +412,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching new clients statistics:", error);
       res.status(500).json({ error: "Failed to fetch new clients statistics" });
+    }
+  });
+
+  // Calendar subscription endpoint (public access for calendar apps)
+  app.get("/api/calendar/lessons.ics", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      // For demo purposes, we'll use a simple token validation
+      // In production, implement proper calendar subscription tokens
+      if (!token || token !== 'calendar-feed-token') {
+        return res.status(401).json({ error: "Invalid calendar token" });
+      }
+
+      const lessons = await storage.getAllLessons();
+      const icalFeed = generateICalFeed(lessons);
+      
+      res.set({
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': 'inline; filename="lessons.ics"',
+        'Cache-Control': 'no-cache, must-revalidate',
+        'Access-Control-Allow-Origin': '*',
+      });
+      
+      res.send(icalFeed);
+    } catch (error) {
+      console.error("Error generating calendar feed:", error);
+      res.status(500).json({ error: "Failed to generate calendar feed" });
+    }
+  });
+
+  // Calendar subscription info endpoint
+  app.get("/api/calendar/subscription-info", requireAuth, async (req, res) => {
+    try {
+      const protocol = req.secure ? 'https' : 'http';
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+      
+      const subscriptionInfo = {
+        icalUrl: `${baseUrl}/api/calendar/lessons.ics?token=calendar-feed-token`,
+        webcalUrl: generateWebCalUrl(`${baseUrl}/api/calendar/lessons.ics?token=calendar-feed-token`),
+        calDAVUrl: generateCalDAVUrl(`${baseUrl}/api/calendar/lessons.ics?token=calendar-feed-token`),
+        instructions: {
+          google: 'Скопируйте ссылку и добавьте её в Google Calendar через "Добавить календарь" → "По URL"',
+          outlook: 'В Outlook выберите "Добавить календарь" → "Подписаться на календарь" и вставьте ссылку',
+          apple: 'В Apple Calendar выберите "Файл" → "Новая подписка на календарь" и вставьте ссылку',
+          other: 'Используйте ссылку .ics для подписки в любом календарном приложении'
+        }
+      };
+      
+      res.json(subscriptionInfo);
+    } catch (error) {
+      console.error("Error getting subscription info:", error);
+      res.status(500).json({ error: "Failed to get subscription info" });
     }
   });
 

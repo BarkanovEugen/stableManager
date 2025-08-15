@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Calendar, Download, ExternalLink, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Download, ExternalLink, X, Link, Copy, Rss } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { LessonWithRelations } from "@shared/schema";
 import { translateLessonType } from "@/lib/lesson-types";
@@ -13,10 +16,29 @@ interface CalendarExportModalProps {
   lessons: LessonWithRelations[];
 }
 
+interface SubscriptionInfo {
+  icalUrl: string;
+  webcalUrl: string;
+  calDAVUrl: string;
+  instructions: {
+    google: string;
+    outlook: string;
+    apple: string;
+    other: string;
+  };
+}
+
 export default function CalendarExportModal({ onClose, lessons }: CalendarExportModalProps) {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [selectedService, setSelectedService] = useState("");
+  const [activeTab, setActiveTab] = useState("export");
   const { toast } = useToast();
+
+  // Fetch subscription info for automatic calendar updates
+  const { data: subscriptionInfo } = useQuery<SubscriptionInfo>({
+    queryKey: ["/api/calendar/subscription-info"],
+    queryFn: () => fetch("/api/calendar/subscription-info").then(res => res.json()),
+  });
 
   const generateICalContent = (lessonsToExport: LessonWithRelations[]) => {
     const icalContent = [
@@ -170,16 +192,32 @@ export default function CalendarExportModal({ onClose, lessons }: CalendarExport
     }
   };
 
+  const copyToClipboard = async (text: string, description: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Скопировано",
+        description: `${description} скопирована в буфер обмена`,
+      });
+    } catch (err) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось скопировать ссылку",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredLessons = getFilteredLessons();
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center">
               <Calendar className="w-5 h-5 mr-2" />
-              Экспорт календаря
+              Экспорт и подписка на календарь
             </div>
             <Button
               variant="ghost"
@@ -192,7 +230,15 @@ export default function CalendarExportModal({ onClose, lessons }: CalendarExport
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="export">Разовый экспорт</TabsTrigger>
+            <TabsTrigger value="subscribe">Подписка на календарь</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="export" className="space-y-6">
+
+            {/* Existing export content */}
           <div>
             <Label>Период экспорта</Label>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -274,7 +320,145 @@ export default function CalendarExportModal({ onClose, lessons }: CalendarExport
               {selectedService === "download" ? "Скачать" : "Экспортировать"}
             </Button>
           </div>
-        </div>
+
+          </TabsContent>
+
+          <TabsContent value="subscribe" className="space-y-6">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <Rss className="w-5 h-5 mr-2 text-green-600" />
+                <h4 className="font-medium text-green-800 dark:text-green-200">
+                  Автоматическое обновление
+                </h4>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                Подписка на календарь автоматически обновляет события при добавлении новых занятий.
+                Все изменения появятся в вашем календаре без дополнительных действий.
+              </p>
+            </div>
+
+            {subscriptionInfo && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Ссылка для подписки (webcal://)</Label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Input
+                      value={subscriptionInfo.webcalUrl}
+                      readOnly
+                      className="text-sm"
+                      data-testid="webcal-url-input"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(subscriptionInfo.webcalUrl, "Ссылка webcal")}
+                      data-testid="copy-webcal-button"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Ссылка .ics для прямого доступа</Label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Input
+                      value={subscriptionInfo.icalUrl}
+                      readOnly
+                      className="text-sm"
+                      data-testid="ical-url-input"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(subscriptionInfo.icalUrl, "Ссылка .ics")}
+                      data-testid="copy-ical-button"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Google Calendar</h5>
+                    <p className="text-xs text-muted-foreground">
+                      {subscriptionInfo.instructions.google}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => copyToClipboard(subscriptionInfo.icalUrl, "Ссылка для Google Calendar")}
+                    >
+                      <Link className="w-4 h-4 mr-1" />
+                      Копировать ссылку
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Outlook</h5>
+                    <p className="text-xs text-muted-foreground">
+                      {subscriptionInfo.instructions.outlook}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => copyToClipboard(subscriptionInfo.icalUrl, "Ссылка для Outlook")}
+                    >
+                      <Link className="w-4 h-4 mr-1" />
+                      Копировать ссылку
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Apple Calendar</h5>
+                    <p className="text-xs text-muted-foreground">
+                      {subscriptionInfo.instructions.apple}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => copyToClipboard(subscriptionInfo.webcalUrl, "Ссылка для Apple Calendar")}
+                    >
+                      <Link className="w-4 h-4 mr-1" />
+                      Копировать ссылку
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Другие приложения</h5>
+                    <p className="text-xs text-muted-foreground">
+                      {subscriptionInfo.instructions.other}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => copyToClipboard(subscriptionInfo.icalUrl, "Универсальная ссылка")}
+                    >
+                      <Link className="w-4 h-4 mr-1" />
+                      Копировать ссылку
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Как работает подписка:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Календарь автоматически обновляется каждый час</li>
+                    <li>• Новые занятия появляются без вашего участия</li>
+                    <li>• Изменения в существующих занятиях синхронизируются</li>
+                    <li>• Отмененные занятия автоматически удаляются</li>
+                    <li>• Работает с любым календарным приложением</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
