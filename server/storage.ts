@@ -354,7 +354,7 @@ export class DatabaseStorage implements IStorage {
 
   // Lessons
   async getAllLessons(): Promise<LessonWithRelations[]> {
-    const lessons = await db.query.lessons.findMany({
+    const lessonList = await db.query.lessons.findMany({
       with: {
         client: true,
         certificate: true,
@@ -372,11 +372,11 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: desc(lessons.date),
     });
-    return lessons.map(lesson => this.convertLessonRelations(lesson));
+    return lessonList.map(lesson => this.convertLessonRelations(lesson));
   }
 
   async getLessonsInDateRange(startDate: Date, endDate: Date): Promise<LessonWithRelations[]> {
-    const lessons = await db.query.lessons.findMany({
+    const lessonList = await db.query.lessons.findMany({
       where: and(
         gte(lessons.date, startDate),
         lte(lessons.date, endDate)
@@ -398,7 +398,7 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: desc(lessons.date),
     });
-    return lessons.map(lesson => this.convertLessonRelations(lesson));
+    return lessonList.map(lesson => this.convertLessonRelations(lesson));
   }
 
   async getLesson(id: string): Promise<LessonWithRelations | undefined> {

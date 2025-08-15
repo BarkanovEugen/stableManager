@@ -53,7 +53,7 @@ export default function Dashboard() {
   });
 
   // Sort upcoming lessons by date/time (nearest first)
-  const upcomingLessons = upcomingLessonsRaw ? 
+  const upcomingLessons = (Array.isArray(upcomingLessonsRaw) && upcomingLessonsRaw) ? 
     [...upcomingLessonsRaw].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) : 
     [];
 
