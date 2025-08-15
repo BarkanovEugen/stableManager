@@ -21,6 +21,28 @@ export const insertNewsSchema = newsSchema.omit({
 export type News = z.infer<typeof newsSchema>;
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 
+// Services schema
+export const serviceSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "Название обязательно"),
+  description: z.string().min(1, "Описание обязательно"),
+  price: z.string().optional(),
+  duration: z.string().optional(),
+  isActive: z.boolean().default(true),
+  order: z.number().default(0),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+
+export const insertServiceSchema = serviceSchema.omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export type Service = z.infer<typeof serviceSchema>;
+export type InsertService = z.infer<typeof insertServiceSchema>;
+
 // Events schema
 export const eventSchema = z.object({
   id: z.string(),

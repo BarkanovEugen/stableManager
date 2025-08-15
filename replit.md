@@ -10,6 +10,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Major Updates (January 2025)
 
+### Content Management System for Landing Page
+- **News Management**: Complete CRUD operations for news articles with image support and publication dates
+- **Events Management**: Full event management system with location, participant tracking, and status controls
+- **Services Management**: Dynamic service management without icons, including pricing, duration, and display order
+- **Administrator Controls**: Edit/delete buttons visible only to administrators for all content types
+- **Modal Interfaces**: User-friendly modal forms for creating and editing all content with validation
+- **Real-time Updates**: All content changes reflect immediately without page refresh
+
 ### Edit Functionality Restoration
 - **Complete Edit Modal System**: Fixed all broken edit functionality across the application
 - **Edit Lesson Modal**: Created comprehensive lesson editing with pre-populated fields, instructor/horse selection, and validation

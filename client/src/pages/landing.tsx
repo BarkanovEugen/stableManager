@@ -9,15 +9,17 @@ import { Label } from "@/components/ui/label";
 import { VKLoginButton } from "@/components/vk-login-button";
 import { useAuth } from "@/hooks/use-auth";
 import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X, Plus, Trash2, Edit } from "lucide-react";
-import type { News, Event } from "@shared/content-schema";
+import type { News, Event, Service } from "@shared/content-schema";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   
   const [editableContent, setEditableContent] = useState({
     siteTitle: "Конюшня \"Солнечная Поляна\"",
@@ -75,6 +77,42 @@ export default function LandingPage() {
     }
   ]);
 
+  const [services, setServices] = useState<Service[]>([
+    {
+      id: "1",
+      title: "Обучение верховой езде",
+      description: "Занятия для новичков и опытных всадников с профессиональными инструкторами",
+      price: "от 2000₽",
+      duration: "45 мин",
+      isActive: true,
+      order: 1,
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    },
+    {
+      id: "2",
+      title: "Иппотерапия",
+      description: "Лечебная верховая езда для реабилитации и улучшения самочувствия",
+      price: "от 2500₽",
+      duration: "60 мин",
+      isActive: true,
+      order: 2,
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    },
+    {
+      id: "3",
+      title: "Конная стрельба из лука",
+      description: "Уникальные занятия по стрельбе из лука верхом на лошади",
+      price: "от 3000₽",
+      duration: "90 мин",
+      isActive: true,
+      order: 3,
+      createdAt: "2024-12-25T10:00:00Z",
+      updatedAt: "2024-12-25T10:00:00Z"
+    }
+  ]);
+
   const [newsForm, setNewsForm] = useState({
     title: "",
     content: "",
@@ -90,6 +128,15 @@ export default function LandingPage() {
     location: "",
     maxParticipants: 0,
     isActive: true
+  });
+
+  const [serviceForm, setServiceForm] = useState({
+    title: "",
+    description: "",
+    price: "",
+    duration: "",
+    isActive: true,
+    order: 0
   });
 
   const handleSaveContent = () => {
@@ -166,6 +213,42 @@ export default function LandingPage() {
 
   const handleDeleteEvent = (id: string) => {
     setEvents(prev => prev.filter(e => e.id !== id));
+  };
+
+  const handleServiceSubmit = () => {
+    if (editingService) {
+      setServices(prev => prev.map(s => s.id === editingService.id ? 
+        { ...editingService, ...serviceForm, updatedAt: new Date().toISOString() } : s
+      ));
+    } else {
+      const newService: Service = {
+        ...serviceForm,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setServices(prev => [...prev, newService].sort((a, b) => a.order - b.order));
+    }
+    setShowServiceModal(false);
+    setEditingService(null);
+    setServiceForm({ title: "", description: "", price: "", duration: "", isActive: true, order: 0 });
+  };
+
+  const handleEditService = (service: Service) => {
+    setEditingService(service);
+    setServiceForm({
+      title: service.title,
+      description: service.description,
+      price: service.price || "",
+      duration: service.duration || "",
+      isActive: service.isActive,
+      order: service.order
+    });
+    setShowServiceModal(true);
+  };
+
+  const handleDeleteService = (id: string) => {
+    setServices(prev => prev.filter(s => s.id !== id));
   };
 
   const canEdit = user?.role === "administrator";
@@ -316,112 +399,84 @@ export default function LandingPage() {
       {/* Services Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {isEditing ? (
-            <Input
-              value={editableContent.servicesTitle}
-              onChange={(e) => setEditableContent(prev => ({ ...prev, servicesTitle: e.target.value }))}
-              className="text-3xl font-bold text-center mb-12 border-2 border-gray-300"
-              data-testid="edit-services-title"
-            />
-          ) : (
-            <h3 className="text-3xl font-bold text-center mb-12" data-testid="services-title">
-              {editableContent.servicesTitle}
-            </h3>
-          )}
+          <div className="flex justify-between items-center mb-12">
+            {isEditing ? (
+              <Input
+                value={editableContent.servicesTitle}
+                onChange={(e) => setEditableContent(prev => ({ ...prev, servicesTitle: e.target.value }))}
+                className="text-3xl font-bold border-2 border-gray-300 max-w-md"
+                data-testid="edit-services-title"
+              />
+            ) : (
+              <h3 className="text-3xl font-bold" data-testid="services-title">
+                {editableContent.servicesTitle}
+              </h3>
+            )}
+            {canEdit && (
+              <Button 
+                onClick={() => setShowServiceModal(true)}
+                className="bg-purple-600 text-white hover:bg-purple-700"
+                data-testid="button-add-service"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Добавить услугу
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <Users className="text-primary text-4xl mb-4 mx-auto" />
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <Input
-                      value={editableContent.service1Title}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service1Title: e.target.value }))}
-                      className="text-xl font-semibold text-center"
-                      data-testid="edit-service1-title"
-                    />
-                    <Textarea
-                      value={editableContent.service1Description}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service1Description: e.target.value }))}
-                      className="text-muted-foreground text-center"
-                      rows={2}
-                      data-testid="edit-service1-description"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-training">
-                      {editableContent.service1Title}
+            {services.filter(service => service.isActive).sort((a, b) => a.order - b.order).map((service) => (
+              <Card key={service.id} className="text-center p-6 hover:shadow-lg transition-shadow">
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-xl mb-2" data-testid={`service-title-${service.id}`}>
+                      {service.title}
                     </h4>
-                    <p className="text-muted-foreground" data-testid="service-description-training">
-                      {editableContent.service1Description}
+                    <p className="text-muted-foreground mb-3" data-testid={`service-description-${service.id}`}>
+                      {service.description}
                     </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <Heart className="text-primary text-4xl mb-4 mx-auto" />
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <Input
-                      value={editableContent.service2Title}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service2Title: e.target.value }))}
-                      className="text-xl font-semibold text-center"
-                      data-testid="edit-service2-title"
-                    />
-                    <Textarea
-                      value={editableContent.service2Description}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service2Description: e.target.value }))}
-                      className="text-muted-foreground text-center"
-                      rows={2}
-                      data-testid="edit-service2-description"
-                    />
+                    {service.price && (
+                      <p className="text-primary font-medium mb-1" data-testid={`service-price-${service.id}`}>
+                        {service.price}
+                      </p>
+                    )}
+                    {service.duration && (
+                      <p className="text-sm text-muted-foreground" data-testid={`service-duration-${service.id}`}>
+                        Продолжительность: {service.duration}
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-therapy">
-                      {editableContent.service2Title}
-                    </h4>
-                    <p className="text-muted-foreground" data-testid="service-description-therapy">
-                      {editableContent.service2Description}
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <Target className="text-primary text-4xl mb-4 mx-auto" />
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <Input
-                      value={editableContent.service3Title}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service3Title: e.target.value }))}
-                      className="text-xl font-semibold text-center"
-                      data-testid="edit-service3-title"
-                    />
-                    <Textarea
-                      value={editableContent.service3Description}
-                      onChange={(e) => setEditableContent(prev => ({ ...prev, service3Description: e.target.value }))}
-                      className="text-muted-foreground text-center"
-                      rows={2}
-                      data-testid="edit-service3-description"
-                    />
+                  <div className="flex gap-2 justify-center">
+                    {!canEdit && (
+                      <Button variant="outline" size="sm" data-testid={`button-service-details-${service.id}`}>
+                        Подробнее
+                      </Button>
+                    )}
+                    {canEdit && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditService(service)}
+                          data-testid={`button-edit-service-${service.id}`}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Изменить
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeleteService(service.id)}
+                          data-testid={`button-delete-service-${service.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Удалить
+                        </Button>
+                      </>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <h4 className="text-xl font-semibold mb-3" data-testid="service-title-archery">
-                      {editableContent.service3Title}
-                    </h4>
-                    <p className="text-muted-foreground" data-testid="service-description-archery">
-                      {editableContent.service3Description}
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -812,6 +867,89 @@ export default function LandingPage() {
                 data-testid="button-save-event"
               >
                 {editingEvent ? "Сохранить" : "Добавить"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Modal */}
+      <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingService ? "Редактировать услугу" : "Добавить услугу"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="service-title">Название</Label>
+              <Input
+                id="service-title"
+                value={serviceForm.title}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Введите название услуги"
+                data-testid="input-service-title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="service-description">Описание</Label>
+              <Textarea
+                id="service-description"
+                value={serviceForm.description}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Введите описание услуги"
+                rows={3}
+                data-testid="textarea-service-description"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="service-price">Цена (опционально)</Label>
+                <Input
+                  id="service-price"
+                  value={serviceForm.price}
+                  onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="от 2000₽"
+                  data-testid="input-service-price"
+                />
+              </div>
+              <div>
+                <Label htmlFor="service-duration">Продолжительность (опционально)</Label>
+                <Input
+                  id="service-duration"
+                  value={serviceForm.duration}
+                  onChange={(e) => setServiceForm(prev => ({ ...prev, duration: e.target.value }))}
+                  placeholder="45 мин"
+                  data-testid="input-service-duration"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="service-order">Порядок отображения</Label>
+              <Input
+                id="service-order"
+                type="number"
+                value={serviceForm.order}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
+                placeholder="0"
+                data-testid="input-service-order"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowServiceModal(false)}
+                data-testid="button-cancel-service"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleServiceSubmit}
+                disabled={!serviceForm.title || !serviceForm.description}
+                data-testid="button-save-service"
+              >
+                {editingService ? "Сохранить" : "Добавить"}
               </Button>
             </div>
           </div>
