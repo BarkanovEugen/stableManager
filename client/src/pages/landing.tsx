@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { VKLoginButton } from "@/components/vk-login-button";
 import { useAuth } from "@/hooks/use-auth";
 import { Rabbit, Heart, Target, Phone, Mail, MapPin, Calendar, Users, Trophy, Settings, Edit3, Save, X, Plus, Trash2, Edit } from "lucide-react";
-import type { News, Event, Service } from "@shared/content-schema";
+import type { News, Event, Service, Review } from "@shared/content-schema";
 import { ContentStorage } from "@/lib/content-storage";
+import "../types/review-lab.d.ts";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -580,8 +581,40 @@ export default function LandingPage() {
 
 
 
-      {/* Social Media & Contact */}
+      {/* Reviews Section */}
       <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold mb-4" data-testid="reviews-title">
+              Отзывы наших клиентов
+            </h3>
+            <p className="text-muted-foreground" data-testid="reviews-subtitle">
+              Узнайте, что говорят о нас наши ученики и их родители
+            </p>
+          </div>
+          
+          {/* ReviewLab Widget */}
+          <div className="max-w-4xl mx-auto">
+            <review-lab data-widgetid="689f02e05878d3b77a65f707"></review-lab>
+          </div>
+          
+          {/* Call to action */}
+          <div className="text-center mt-8">
+            <p className="text-muted-foreground mb-4">
+              Поделитесь своим опытом занятий в нашей конюшне
+            </p>
+            <Button 
+              className="bg-primary text-white hover:bg-primary/90"
+              data-testid="button-leave-review"
+            >
+              Оставить отзыв
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Media & Contact */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h3 className="text-3xl font-bold mb-8" data-testid="social-title">
             Следите за нами в социальных сетях

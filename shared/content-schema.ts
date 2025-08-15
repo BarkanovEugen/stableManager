@@ -43,6 +43,27 @@ export const insertServiceSchema = serviceSchema.omit({
 export type Service = z.infer<typeof serviceSchema>;
 export type InsertService = z.infer<typeof insertServiceSchema>;
 
+// Reviews schema
+export const reviewSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Имя обязательно"),
+  rating: z.number().min(1).max(5),
+  comment: z.string().min(1, "Комментарий обязателен"),
+  date: z.string(),
+  isApproved: z.boolean().default(true),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+
+export const insertReviewSchema = reviewSchema.omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export type Review = z.infer<typeof reviewSchema>;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+
 // Events schema
 export const eventSchema = z.object({
   id: z.string(),
