@@ -19,3 +19,5 @@ export const lessonTypeTranslations: Record<string, string> = {
 export const translateLessonType = (type: string): string => {
   return lessonTypeTranslations[type] || type;
 };
+
+export const getLessonTypeLabel = translateLessonType;

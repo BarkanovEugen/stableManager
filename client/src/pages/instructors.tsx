@@ -6,10 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Phone, Mail, UserCheck, UserX } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import type { Instructor } from "@shared/schema";
+import type { Instructor, LessonWithRelations } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getLessonTypeLabel } from "@/lib/lesson-types";
 
 export default function InstructorsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(null);
+  const [scheduleInstructor, setScheduleInstructor] = useState<Instructor | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
@@ -180,6 +185,7 @@ export default function InstructorsPage() {
                         variant="outline" 
                         size="sm" 
                         className="flex-1" 
+                        onClick={() => setEditingInstructor(instructor)}
                         data-testid={`button-edit-instructor-${instructor.id}`}
                       >
                         Редактировать
@@ -188,6 +194,7 @@ export default function InstructorsPage() {
                         variant="outline" 
                         size="sm" 
                         className="flex-1" 
+                        onClick={() => setScheduleInstructor(instructor)}
                         data-testid={`button-view-schedule-${instructor.id}`}
                       >
                         Расписание
@@ -203,6 +210,20 @@ export default function InstructorsPage() {
 
       {showCreateModal && (
         <CreateInstructorModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {editingInstructor && (
+        <EditInstructorModal 
+          instructor={editingInstructor}
+          onClose={() => setEditingInstructor(null)} 
+        />
+      )}
+
+      {scheduleInstructor && (
+        <InstructorScheduleModal 
+          instructor={scheduleInstructor}
+          onClose={() => setScheduleInstructor(null)} 
+        />
       )}
     </div>
   );
@@ -302,5 +323,207 @@ function CreateInstructorModal({ onClose }: { onClose: () => void }) {
         </form>
       </div>
     </div>
+  );
+}
+
+function EditInstructorModal({ instructor, onClose }: { instructor: Instructor; onClose: () => void }) {
+  const [formData, setFormData] = useState({
+    name: instructor.name,
+    phone: instructor.phone || "",
+    email: instructor.email || "",
+    specializations: instructor.specializations?.join(", ") || "",
+  });
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const payload = {
+        ...data,
+        specializations: data.specializations.split(",").map((s: string) => s.trim()).filter(Boolean),
+      };
+      const response = await fetch(`/api/instructors/${instructor.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("Failed to update instructor");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/instructors"] });
+      onClose();
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate(formData);
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Редактировать инструктора</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Имя*</label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              data-testid="input-edit-instructor-name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Телефон</label>
+            <Input
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              data-testid="input-edit-instructor-phone"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Email</label>
+            <Input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              data-testid="input-edit-instructor-email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Специализации</label>
+            <Input
+              value={formData.specializations}
+              onChange={(e) => setFormData({ ...formData, specializations: e.target.value })}
+              placeholder="Верховая езда, Иппотерапия, Стрельба из лука"
+              data-testid="input-edit-instructor-specializations"
+            />
+            <div className="text-xs text-muted-foreground mt-1">
+              Перечислите через запятую
+            </div>
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              data-testid="button-update-instructor"
+            >
+              {updateMutation.isPending ? "Сохранение..." : "Сохранить изменения"}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Отмена
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function InstructorScheduleModal({ instructor, onClose }: { instructor: Instructor; onClose: () => void }) {
+  const [statusFilter, setStatusFilter] = useState("planned");
+  
+  const { data: lessons, isLoading } = useQuery<LessonWithRelations[]>({
+    queryKey: ["/api/lessons", "instructor", instructor.id],
+    queryFn: () => fetch("/api/lessons").then(res => res.json()),
+  });
+
+  // Filter lessons for this instructor
+  const instructorLessons = lessons?.filter(lesson => 
+    lesson.lessonInstructors?.some(li => li.instructorId === instructor.id)
+  ) || [];
+
+  // Apply status filter
+  const filteredLessons = statusFilter === "all" 
+    ? instructorLessons 
+    : instructorLessons.filter(lesson => lesson.status === statusFilter);
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Расписание: {instructor.name}</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div className="flex gap-2 items-center">
+            <label className="text-sm font-medium">Статус:</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="planned">Запланированные</SelectItem>
+                <SelectItem value="completed">Завершенные</SelectItem>
+                <SelectItem value="cancelled">Отмененные</SelectItem>
+                <SelectItem value="all">Все</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredLessons.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Нет занятий с выбранным статусом
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredLessons.map(lesson => (
+                <div key={lesson.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium">{lesson.client.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {getLessonTypeLabel(lesson.type)} • {lesson.duration} мин
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium">
+                        {new Date(lesson.date).toLocaleDateString("ru-RU")} в{" "}
+                        {new Date(lesson.date).toLocaleTimeString("ru-RU", { 
+                          hour: "2-digit", 
+                          minute: "2-digit" 
+                        })}
+                      </div>
+                      <Badge 
+                        variant={
+                          lesson.status === "completed" ? "default" :
+                          lesson.status === "cancelled" ? "destructive" :
+                          "secondary"
+                        }
+                      >
+                        {lesson.status === "planned" ? "Запланировано" :
+                         lesson.status === "completed" ? "Завершено" :
+                         "Отменено"}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {lesson.lessonHorses && lesson.lessonHorses.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      Лошади: {lesson.lessonHorses.map(lh => lh.horse?.nickname || "Не назначена").join(", ")}
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span>{lesson.cost} ₽</span>
+                    <span className={lesson.isPaid ? "text-green-600" : "text-red-600"}>
+                      {lesson.isPaid ? "Оплачено" : "Не оплачено"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
