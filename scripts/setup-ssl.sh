@@ -9,7 +9,7 @@ echo "🔐 SSL Certificate Setup Script"
 echo "==============================="
 
 # Configuration
-VPS_HOST="${VPS_HOST:-your-server-ip}"
+VPS_HOST="${VPS_HOST:83.166.246.72}"
 VPS_USER="${VPS_USER:-root}"
 SSL_LOCAL_PATH="${SSL_LOCAL_PATH:-./ssl}"
 SSL_REMOTE_PATH="/opt/stable-crm/ssl"
