@@ -10,6 +10,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Major Updates (January 2025)
 
+### Docker Deployment Setup
+- **Complete Docker Configuration**: Created production-ready Dockerfile with multi-stage build and security optimizations
+- **Docker Compose Stack**: Full orchestration with Nginx, PostgreSQL, and application containers
+- **GitHub CI/CD Pipeline**: Automated deployment workflow with testing, building, and deployment stages
+- **SSL Certificate Management**: Automated SSL certificate upload and configuration scripts
+- **Production Nginx Config**: Optimized reverse proxy configuration with security headers and SSL termination
+- **Deployment Documentation**: Comprehensive guides for VPS deployment with troubleshooting
+
+## Recent Major Updates (January 2025)
+
 ### Content Management System for Landing Page
 - **News Management**: Complete CRUD operations for news articles with image support and publication dates
 - **Events Management**: Full event management system with location, participant tracking, and status controls
