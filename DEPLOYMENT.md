@@ -4,11 +4,16 @@
 
 ### Автоматический деплой одной командой:
 ```bash
+# ВАЖНО: Замените your-username на ваше GitHub имя пользователя
 curl -fsSL https://raw.githubusercontent.com/your-username/stable-crm/main/scripts/auto-deploy.sh | bash -s your-domain.com
+
+# Пример для пользователя ivan123 и домена stable.example.com:
+# curl -fsSL https://raw.githubusercontent.com/ivan123/stable-crm/main/scripts/auto-deploy.sh | bash -s stable.example.com
 ```
 
 Или пошагово:
 ```bash
+# Замените your-username на ваше GitHub имя
 wget https://raw.githubusercontent.com/your-username/stable-crm/main/scripts/auto-deploy.sh
 chmod +x auto-deploy.sh
 ./auto-deploy.sh your-domain.com

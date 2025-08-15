@@ -16,6 +16,7 @@ WHITE='\033[1;37m'
 NC='\033[0m'
 
 # Configuration
+# Default repository - update this to match your GitHub username
 REPO_URL="https://github.com/your-username/stable-crm.git"
 PROJECT_DIR="/opt/stable-crm"
 DOMAIN=""
@@ -92,9 +93,19 @@ gather_input() {
     done
     
     # Repository URL (optional override)
-    read -p "GitHub репозиторий [$REPO_URL]: " CUSTOM_REPO
+    echo ""
+    echo -e "${YELLOW}📂 Настройка репозитория${NC}"
+    echo "По умолчанию: $REPO_URL"
+    echo -e "${BLUE}Замените 'your-username' на ваше GitHub имя пользователя${NC}"
+    read -p "GitHub репозиторий (или Enter для продолжения): " CUSTOM_REPO
     if [ -n "$CUSTOM_REPO" ]; then
         REPO_URL="$CUSTOM_REPO"
+    else
+        # Auto-update if still using template
+        if [[ "$REPO_URL" == *"your-username"* ]]; then
+            echo -e "${RED}ВНИМАНИЕ: Необходимо указать реальный GitHub репозиторий!${NC}"
+            read -p "Введите полный URL репозитория: " REPO_URL
+        fi
     fi
     
     # Confirmation
