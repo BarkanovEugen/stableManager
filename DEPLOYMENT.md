@@ -83,16 +83,29 @@ PUBLIC_OBJECT_SEARCH_PATHS=public/
 PRIVATE_OBJECT_DIR=private/
 ```
 
-### 4. Загрузка SSL сертификатов
+### 4. Настройка SSL сертификата
 
+У вас есть несколько вариантов:
+
+#### Вариант А: Let's Encrypt (бесплатный, автопродление)
 ```bash
-# Загрузите ваши SSL сертификаты в директорию ssl/
-# Используйте скрипт для автоматической загрузки:
-./scripts/setup-ssl.sh
+# Используйте наш автоматический скрипт
+./scripts/setup-letsencrypt.sh your-domain.com
 
-# Или вручную:
-# scp your-certificate.crt user@server:/opt/stable-crm/ssl/
-# scp your-private.key user@server:/opt/stable-crm/ssl/
+# Скрипт автоматически:
+# - Проверит DNS настройки
+# - Выпустит SSL сертификат
+# - Настроит автоматическое продление
+# - Обновит конфигурацию nginx
+```
+
+#### Вариант Б: Cloudflare SSL (бесплатный + CDN)
+Самый простой способ - см. `scripts/ssl-alternatives.md`
+
+#### Вариант В: Загрузить существующие сертификаты
+```bash
+# Если у вас есть действующие сертификаты для домена:
+./scripts/setup-ssl.sh
 ```
 
 ### 5. Обновите конфигурацию Nginx
