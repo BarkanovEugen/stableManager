@@ -118,6 +118,13 @@ export const lessonHorses = pgTable("lesson_horses", {
   horseId: varchar("horse_id").notNull().references(() => horses.id),
 });
 
+// Sessions table for connect-pg-simple
+export const sessions = pgTable("sessions", {
+  sid: varchar("sid").primaryKey(),
+  sess: text("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+});
+
 // Landing page content
 export const landingContent = pgTable("landing_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
