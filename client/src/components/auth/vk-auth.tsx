@@ -16,10 +16,20 @@ export default function VKAuth({ onClose }: VKAuthProps) {
 
   const handleVKAuth = async () => {
     try {
+      console.log('Starting VK authentication...');
       setIsAuthenticating(true);
+      
+      console.log('Initializing VK auth...');
       await vkAuth.init();
+      
+      console.log('Showing VK login widget...');
       const authData = await vkAuth.showLoginWidget();
+      console.log('VK auth data received:', authData);
+      
+      console.log('Logging in with VK data...');
       await login(authData.access_token);
+      
+      console.log('VK authentication successful');
       onClose();
       toast({
         title: "Успешная авторизация",

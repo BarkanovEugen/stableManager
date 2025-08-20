@@ -44,34 +44,49 @@ export class VKAuthManager {
   private floatingOneTap: any = null;
   private initialized = false;
 
-  constructor(private config: VKIDConfig) {}
+  constructor(private config: VKIDConfig) {
+    console.log('VKAuthManager initialized with config:', this.config);
+  }
 
   init(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.initialized) {
+        console.log('VKAuthManager already initialized');
         resolve();
         return;
       }
 
+      console.log('Starting VKAuthManager initialization...');
+      console.log('Checking for VKIDSDK...', !!window.VKIDSDK);
+
       // Wait for VKID SDK to load
       const checkSDK = () => {
+        console.log('Checking VKIDSDK availability...', !!window.VKIDSDK);
         if (window.VKIDSDK) {
           try {
-            window.VKIDSDK.Config.init({
+            console.log('VKIDSDK found, initializing config...');
+            const config = {
               app: this.config.app,
               redirectUrl: this.config.redirectUrl,
               responseMode: window.VKIDSDK.ConfigResponseMode.Callback,
               source: window.VKIDSDK.ConfigSource.LOWCODE,
               scope: '',
-            });
+            };
+            console.log('VKIDSDK config:', config);
+            
+            window.VKIDSDK.Config.init(config);
 
+            console.log('Creating FloatingOneTap...');
             this.floatingOneTap = new window.VKIDSDK.FloatingOneTap();
             this.initialized = true;
+            console.log('VKAuthManager initialization completed');
             resolve();
           } catch (error) {
+            console.error('VKAuthManager initialization error:', error);
             reject(error);
           }
         } else {
+          console.log('VKIDSDK not available yet, retrying...');
           setTimeout(checkSDK, 100);
         }
       };
@@ -82,11 +97,15 @@ export class VKAuthManager {
 
   showLoginWidget(): Promise<any> {
     return new Promise((resolve, reject) => {
+      console.log('showLoginWidget called, floatingOneTap:', !!this.floatingOneTap);
+      
       if (!this.floatingOneTap) {
+        console.error('VK ID not initialized');
         reject(new Error('VK ID not initialized'));
         return;
       }
 
+      console.log('Rendering VK login widget...');
       this.floatingOneTap.render({
         appName: 'StableManager',
         showAlternativeLogin: true
