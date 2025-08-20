@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -8,18 +7,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// PostgreSQL session store
-const PostgresStore = pgSession(session);
-
-// Session middleware
+// Session middleware (temporarily using MemoryStore)
 app.use(session({
-  store: new PostgresStore({
-    conObject: {
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    },
-    tableName: 'sessions'
-  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key-here',
   resave: false,
   saveUninitialized: false,
