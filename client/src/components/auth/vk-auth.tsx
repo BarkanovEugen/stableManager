@@ -17,8 +17,9 @@ export default function VKAuth({ onClose }: VKAuthProps) {
   const handleVKAuth = async () => {
     try {
       setIsAuthenticating(true);
-      const accessToken = await vkAuth.authenticate();
-      await login(accessToken);
+      await vkAuth.init();
+      const authData = await vkAuth.showLoginWidget();
+      await login(authData.access_token);
       onClose();
       toast({
         title: "Успешная авторизация",
