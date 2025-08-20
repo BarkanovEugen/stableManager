@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -7,13 +8,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Session middleware (temporarily using MemoryStore)
+// PostgreSQL session store
+const PostgresStore = pgSession(session);
+
+// Session middleware
 app.use(session({
+  store: new PostgresStore({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: false // Отключаем SSL для локальной PostgreSQL в Docker
+    },
+    tableName: 'sessions'
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key-here',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Secure cookies in production
+    secure: false, // Отключаем secure для HTTP (в продакшене должно быть true)
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     httpOnly: true, // Prevent XSS attacks
     sameSite: 'lax' // CSRF protection
